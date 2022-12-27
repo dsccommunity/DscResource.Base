@@ -1,0 +1,155 @@
+---
+####################################################
+# Pipeline Build Task Configuration (Invoke-Build) #
+####################################################
+BuildWorkflow:
+  '.':
+    - build
+    - test
+
+  build:
+    - Clean
+    - Build_Module_ModuleBuilder
+    - Build_NestedModules_ModuleBuilder
+    - Create_Changelog_Release_Output
+    - Generate_Conceptual_Help
+    - Generate_Wiki_Content
+
+  pack:
+    - build
+    - package_module_nupkg
+
+  hqrmtest:
+    - Invoke_HQRM_Tests_Stop_On_Fail
+
+  test:
+    - Pester_Tests_Stop_On_Fail
+    - Convert_Pester_Coverage
+    - Pester_If_Code_Coverage_Under_Threshold
+
+  publish:
+    - Publish_Release_To_GitHub
+    - Publish_Module_To_gallery
+    - Publish_GitHub_Wiki_Content
+
+####################################################
+#           ModuleBuilder Configuration            #
+####################################################
+CopyPaths:
+  - en-US
+Prefix: prefix.ps1
+Encoding: UTF8
+VersionedOutputDirectory: true
+BuiltModuleSubdirectory: builtModule
+
+ModuleBuildTasks:
+  Sampler:
+    - '*.build.Sampler.ib.tasks'
+  Sampler.GitHubTasks:
+    - '*.ib.tasks'
+  DscResource.DocGenerator:
+    - 'Task.*'
+  DscResource.Test:
+    - 'Task.*'
+
+TaskHeader: |
+  param($Path)
+  ""
+  "=" * 79
+  Write-Build Cyan "`t`t`t$($Task.Name.replace("_"," ").ToUpper())"
+  Write-Build DarkGray  "$(Get-BuildSynopsis $Task)"
+  "-" * 79
+  Write-Build DarkGray "  $Path"
+  Write-Build DarkGray "  $($Task.InvocationInfo.ScriptName):$($Task.InvocationInfo.ScriptLineNumber)"
+  ""
+
+####################################################
+#     Dependent Modules Configuration (Sampler)    #
+####################################################
+NestedModule:
+  DscResource.Common:
+    CopyOnly: true
+    Path: ./output/RequiredModules/DscResource.Common
+    AddToManifest: false
+    Exclude: PSGetModuleInfo.xml
+
+####################################################
+#          Pester Configuration (Sampler)          #
+####################################################
+Pester:
+  Configuration:
+    Run:
+      Path:
+        - tests/Unit
+    Output:
+      Verbosity: Detailed
+      StackTraceVerbosity: Full
+      CIFormat: Auto
+    CodeCoverage:
+      CoveragePercentTarget: 85
+      OutputPath: JaCoCo_coverage.xml
+      OutputEncoding: ascii
+      # There is a bug in Pester when running unit tests for classes when 'UseBreakpoints' is turned off.
+      # See error in gist: https://gist.github.com/johlju/c16dfd9587c7e066e8825fc54b33a703
+      UseBreakpoints: true
+    TestResult:
+      OutputFormat: NUnitXML
+      OutputEncoding: ascii
+  ExcludeFromCodeCoverage:
+    - Modules/DscResource.Common
+
+####################################################
+#      Pester Configuration (DscResource.Test)     #
+####################################################
+DscTest:
+  Pester:
+    Configuration:
+      Filter:
+        ExcludeTag:
+          - "Common Tests - New Error-Level Script Analyzer Rules"
+      Output:
+        Verbosity: Detailed
+        CIFormat: Auto
+      TestResult:
+        OutputFormat: NUnitXML
+        OutputEncoding: ascii
+        OutputPath: ./output/testResults/NUnitXml_HQRM_Tests.xml
+  Script:
+    ExcludeSourceFile:
+      - output
+    ExcludeModuleFile:
+      - Modules/DscResource.Common
+      # Must exclude built module file because it should not be tested like MOF-based resources
+      - DscResource.Base.psm1
+    MainGitBranch: main
+
+####################################################
+#              PSDepend Configuration              #
+####################################################
+Resolve-Dependency:
+  Gallery: 'PSGallery'
+  AllowPrerelease: false
+  Verbose: false
+
+####################################################
+#               GitHub Configuration               #
+####################################################
+GitHubConfig:
+  GitHubFilesToAdd:
+    - 'CHANGELOG.md'
+  GitHubConfigUserName: dscbot
+  GitHubConfigUserEmail: dsccommunity@outlook.com
+  UpdateChangelogOnPrerelease: false
+
+####################################################
+#      DscResource.DocGenerator Configuration      #
+####################################################
+DscResource.DocGenerator:
+  Generate_Conceptual_Help:
+    MarkdownCodeRegularExpression:
+      - '\`(.+?)\`' # Match inline code-block
+      - '\\(\\)' # Match escaped backslash
+      - '\[[^\[]+\]\((.+?)\)' # Match markdown URL
+      - '_(.+?)_' # Match Italic (underscore)
+      - '\*\*(.+?)\*\*' # Match bold
+      - '\*(.+?)\*' # Match Italic (asterisk)
