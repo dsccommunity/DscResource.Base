@@ -57,13 +57,12 @@ Describe 'ResourceBase' {
             }
         }
 
-        # TODO: This should be uncommented when the PR in Sampler is merged: https://github.com/gaelcolas/Sampler/pull/408
-        # It 'Should have a constructor that takes one string argument' {
-        #     InModuleScope -ScriptBlock {
-        #         $instance = [ResourceBase]::new($TestDrive)
-        #         $instance | Should -Not -BeNullOrEmpty
-        #     }
-        # }
+        It 'Should have a constructor that takes one string argument' {
+            InModuleScope -ScriptBlock {
+                $instance = [ResourceBase]::new($TestDrive)
+                $instance | Should -Not -BeNullOrEmpty
+            }
+        }
 
         It 'Should be the correct type' {
             InModuleScope -ScriptBlock {
