@@ -3,10 +3,10 @@
 The **DscResource.Base** module contains common classes that can be used
 for class-based DSC resources development.
 
-[![Build Status](https://dev.azure.com/dsccommunity/DscResource.Base/_apis/build/status/dsccommunity.DscResource.Base?branchName=main)](https://dev.azure.com/dsccommunity/DscResource.Base/_build/latest?definitionId=11&branchName=main)
-![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/dsccommunity/DscResource.Base/11/main)
+[![Build Status](https://dev.azure.com/dsccommunity/DscResource.Base/_apis/build/status/dsccommunity.DscResource.Base?branchName=main)](https://dev.azure.com/dsccommunity/DscResource.Base/_build/latest?definitionId=53&branchName=main)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/dsccommunity/DscResource.Base/53/main)
 [![codecov](https://codecov.io/gh/dsccommunity/DscResource.Base/branch/main/graph/badge.svg)](https://codecov.io/gh/dsccommunity/DscResource.Base)
-[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/dsccommunity/DscResource.Base/11/main)](https://dsccommunity.visualstudio.com/DscResource.Base/_test/analytics?definitionId=11&contextType=build)
+[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/dsccommunity/DscResource.Base/53/main)](https://dsccommunity.visualstudio.com/DscResource.Base/_test/analytics?definitionId=53&contextType=build)
 [![PowerShell Gallery (with prereleases)](https://img.shields.io/powershellgallery/vpre/DscResource.Base?label=DscResource.Base%20Preview)](https://www.powershellgallery.com/packages/DscResource.Base/)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/DscResource.Base?label=DscResource.Base)](https://www.powershellgallery.com/packages/DscResource.Base/)
 
