@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- DscResource.Base
+  - Correct pipeline definition id for status badges in README.md.
 - `ResourceBase`
   - Increased code coverage.
 
