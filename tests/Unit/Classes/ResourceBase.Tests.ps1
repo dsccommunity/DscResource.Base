@@ -855,6 +855,8 @@ class MyMockResource : ResourceBase
     [System.String]
     $MyResourceProperty2
 
+    MyMockResource () {}
+
     [System.Collections.Hashtable[]] Compare()
     {
         return $null
@@ -900,6 +902,8 @@ class MyMockResource : ResourceBase
     [DscProperty()]
     [System.String]
     $MyResourceProperty2
+
+    MyMockResource () {}
 
     [System.Collections.Hashtable[]] Compare()
     {
@@ -959,6 +963,8 @@ class MyMockResource : ResourceBase
     [DscProperty(NotConfigurable)]
     [System.String]
     $MyResourceReadProperty
+
+    MyMockResource () {}
 
     [ResourceBase] Get()
     {
@@ -1030,6 +1036,8 @@ class MyMockResource : ResourceBase
     [DscProperty(NotConfigurable)]
     [System.String]
     $MyResourceReadProperty
+
+    MyMockResource () {}
 
     [ResourceBase] Get()
     {
@@ -1139,6 +1147,8 @@ class MyMockResource : ResourceBase
     [System.String]
     $MyResourceProperty3
 
+    MyMockResource () {}
+
     # Hidden property to determine whether the method Modify() was called.
     hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
 
@@ -1197,6 +1207,8 @@ class MyMockResource : ResourceBase
 
     # Hidden property to determine whether the method Modify() was called.
     hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
+
+    MyMockResource () {}
 
     [System.Collections.Hashtable[]] Compare()
     {
@@ -1261,6 +1273,8 @@ class MyMockResource : ResourceBase
 
     # Hidden property to determine whether the method Modify() was called.
     hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
+
+    MyMockResource () {}
 
     [System.Collections.Hashtable[]] Compare()
     {

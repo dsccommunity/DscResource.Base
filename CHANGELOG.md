@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- DscResource.Base
+  - Enable Pester's new code coverage method.
+
 ### Fixed
 
 - DscResource.Base
