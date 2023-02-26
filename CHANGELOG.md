@@ -5,10 +5,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- DscResource.Base
+  - A new private function `ConvertFrom-Reason` was added which takes an
+    array of `[Reason]` and coverts it to an array of `[System.Collections.Hashtable]`.
+
 ### Changed
 
 - DscResource.Base
   - Enable Pester's new code coverage method.
+  - The private function `ConvertTo-Reason` was renamed `Build-Reason`.
+- `ResourceBase`
+  - The property `Reasons` in derived class-based resources is now expected
+    to use the type `[System.Collections.Hashtable[]]` ([issue #4](https://github.com/dsccommunity/DscResource.Base/issues/4)).
 
 ### Fixed
 

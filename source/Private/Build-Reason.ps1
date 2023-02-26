@@ -3,9 +3,8 @@
         Returns a array of the type `[Reason]`.
 
     .DESCRIPTION
-        This command converts the array of properties that is returned by the command
-        `Compare-DscParameterState`. The result is an array of the type `[Reason]` that
-        can be returned in a DSC resource's property **Reasons**.
+        This command builds an array from the properties that is returned by the command
+        `Compare-DscParameterState`. The result is an array of the type `[Reason]`.
 
     .PARAMETER Property
        The result from the command Compare-DscParameterState.
@@ -15,7 +14,7 @@
        the correct value.
 
     .EXAMPLE
-        ConvertTo-Reason -Property (Compare-DscParameterState) -ResourceName 'MyResource'
+        Build-Reason -Property (Compare-DscParameterState) -ResourceName 'MyResource'
 
         Returns an array of `[Reason]` that contain all the properties not in desired
         state and why a specific property is not in desired state.
@@ -23,7 +22,7 @@
     .OUTPUTS
         [Reason[]]
 #>
-function ConvertTo-Reason
+function Build-Reason
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the rule does not yet support parsing the code when the output type is not available. The ScriptAnalyzer rule UseSyntacticallyCorrectExamples will always error in the editor due to https://github.com/indented-automation/Indented.ScriptAnalyzerRules/issues/8.')]
     [CmdletBinding()]

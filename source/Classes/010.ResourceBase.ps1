@@ -122,7 +122,8 @@ class ResourceBase
         {
             # Always return an empty array if all properties are in desired state.
             $dscResourceObject.Reasons = $propertiesNotInDesiredState |
-                ConvertTo-Reason -ResourceName $this.GetType().Name
+                Build-Reason -ResourceName $this.GetType().Name |
+                ConvertFrom-Reason
         }
 
         # Return properties.

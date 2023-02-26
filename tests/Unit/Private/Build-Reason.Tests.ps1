@@ -42,13 +42,11 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'ConvertTo-Reason' -Tag 'Private' {
+Describe 'Build-Reason' -Tag 'Private' {
     Context 'When passing an empty collection' {
         It 'Should return an empty collection' {
             InModuleScope -ScriptBlock {
-                $mockProperties = @()
-
-                $result = ConvertTo-Reason -Property $mockProperties -ResourceName 'MyResource'
+                $result = Build-Reason -Property @() -ResourceName 'MyResource'
 
                 $result | Should -HaveCount 0
             }
@@ -58,9 +56,7 @@ Describe 'ConvertTo-Reason' -Tag 'Private' {
     Context 'When passing a null value' {
         It 'Should return an empty collection' {
             InModuleScope -ScriptBlock {
-                $mockProperties = @()
-
-                $result = ConvertTo-Reason -Property $null -ResourceName 'MyResource'
+                $result = Build-Reason -Property $null -ResourceName 'MyResource'
 
                 $result | Should -HaveCount 0
             }
@@ -83,7 +79,7 @@ Describe 'ConvertTo-Reason' -Tag 'Private' {
                     }
                 )
 
-                $result = ConvertTo-Reason -Property $mockProperties -ResourceName 'MyResource'
+                $result = Build-Reason -Property $mockProperties -ResourceName 'MyResource'
 
                 $result | Should -HaveCount 2
 
@@ -112,7 +108,7 @@ Describe 'ConvertTo-Reason' -Tag 'Private' {
                     }
                 )
 
-                $result = $mockProperties | ConvertTo-Reason -ResourceName 'MyResource'
+                $result = $mockProperties | Build-Reason -ResourceName 'MyResource'
 
                 $result | Should -HaveCount 2
 
@@ -146,7 +142,7 @@ Describe 'ConvertTo-Reason' -Tag 'Private' {
                         }
                     )
 
-                    $result = ConvertTo-Reason -Property $mockProperties -ResourceName 'MyResource'
+                    $result = Build-Reason -Property $mockProperties -ResourceName 'MyResource'
 
                     $result | Should -HaveCount 1
 
@@ -179,7 +175,7 @@ Describe 'ConvertTo-Reason' -Tag 'Private' {
                         }
                     )
 
-                    $result = ConvertTo-Reason -Property $mockProperties -ResourceName 'MyResource'
+                    $result = Build-Reason -Property $mockProperties -ResourceName 'MyResource'
 
                     $result | Should -HaveCount 1
 
@@ -201,7 +197,7 @@ Describe 'ConvertTo-Reason' -Tag 'Private' {
                     }
                 )
 
-                $result = ConvertTo-Reason -Property $mockProperties -ResourceName 'MyResource'
+                $result = Build-Reason -Property $mockProperties -ResourceName 'MyResource'
 
                 $result | Should -HaveCount 1
 

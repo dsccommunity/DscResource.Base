@@ -162,7 +162,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     <#
@@ -213,6 +213,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                     $getResult.MyResourceProperty2 | Should -Be 'MyValue2'
                     $getResult.Ensure | Should -Be ([Ensure]::Present)
+
+                    Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
                     $getResult.Reasons | Should -BeNullOrEmpty
                 }
             }
@@ -248,7 +250,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     <#
@@ -292,6 +294,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                     $getResult.MyResourceProperty2 | Should -BeNullOrEmpty
                     $getResult.Ensure | Should -Be ([Ensure]::Absent)
+
+                    Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
                     $getResult.Reasons | Should -BeNullOrEmpty
                 }
             }
@@ -328,7 +332,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
@@ -364,6 +368,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                         $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                         $getResult.MyResourceProperty2 | Should -Be 'MyValue2'
                         $getResult.Ensure | Should -Be ([Ensure]::Present)
+
+                        Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
                         $getResult.Reasons | Should -BeNullOrEmpty
                     }
                 }
@@ -399,7 +405,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
@@ -435,6 +441,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                         $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                         $getResult.MyResourceProperty2 | Should -BeNullOrEmpty
                         $getResult.Ensure | Should -Be ([Ensure]::Absent)
+
+                        Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
                         $getResult.Reasons | Should -BeNullOrEmpty
                     }
                 }
@@ -476,7 +484,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     MyMockResource() : base ()
@@ -518,6 +526,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                         $getResult.MyResourceProperty2 | Should -Be 'MyValue2'
                         $getResult.Ensure | Should -Be ([Ensure]::Present)
 
+                        Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
+
                         $getResult.Reasons | Should -HaveCount 1
                         $getResult.Reasons[0].Code | Should -Be 'MyMockResource:MyMockResource:MyResourceProperty2'
                         $getResult.Reasons[0].Phrase | Should -Be 'The property MyResourceProperty2 should be "NewValue2", but was "MyValue2"'
@@ -550,7 +560,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     MyMockResource() : base ()
@@ -587,6 +597,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
 
                         $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                         $getResult.Ensure | Should -Be ([Ensure]::Absent)
+
+                        Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
 
                         $getResult.Reasons | Should -HaveCount 1
                         $getResult.Reasons[0].Code | Should -Be 'MyMockResource:MyMockResource:Ensure'
@@ -626,7 +638,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     MyMockResource() : base ()
@@ -668,6 +680,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $getResult.MyResourceProperty2 | Should -Be 'MyValue2'
                     $getResult.Ensure | Should -Be ([Ensure]::Present)
 
+                    Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
+
                     $getResult.Reasons | Should -HaveCount 1
                     $getResult.Reasons[0].Code | Should -Be 'MyMockResource:MyMockResource:Ensure'
                     $getResult.Reasons[0].Phrase | Should -Be 'The property Ensure should be "Absent", but was "Present"'
@@ -701,7 +715,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
@@ -737,6 +751,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                         $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                         $getResult.MyResourceProperty2 | Should -Be 'MyValue2'
                         $getResult.Ensure | Should -Be ([Ensure]::Absent)
+
+                        Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
 
                         $getResult.Reasons | Should -HaveCount 2
 
@@ -779,7 +795,7 @@ class MyMockResource : ResourceBase
     $MyResourceProperty2
 
     [DscProperty(NotConfigurable)]
-    [Reason[]]
+    [System.Collections.Hashtable[]]
     $Reasons
 
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
@@ -815,6 +831,8 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                         $getResult.MyResourceKeyProperty1 | Should -Be 'MyValue1'
                         $getResult.MyResourceProperty2 | Should -Be 'MyValue2'
                         $getResult.Ensure | Should -Be ([Ensure]::Present)
+
+                        Should -ActualValue $getResult.Reasons -HaveType [System.Collections.Hashtable[]]
 
                         $getResult.Reasons | Should -HaveCount 1
 
