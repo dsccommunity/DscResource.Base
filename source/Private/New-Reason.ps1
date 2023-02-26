@@ -14,7 +14,7 @@
        the correct value.
 
     .EXAMPLE
-        Build-Reason -Property (Compare-DscParameterState) -ResourceName 'MyResource'
+        New-Reason -Property (Compare-DscParameterState) -ResourceName 'MyResource'
 
         Returns an array of `[Reason]` that contain all the properties not in desired
         state and why a specific property is not in desired state.
@@ -22,7 +22,7 @@
     .OUTPUTS
         [Reason[]]
 #>
-function Build-Reason
+function New-Reason
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the rule does not yet support parsing the code when the output type is not available. The ScriptAnalyzer rule UseSyntacticallyCorrectExamples will always error in the editor due to https://github.com/indented-automation/Indented.ScriptAnalyzerRules/issues/8.')]
     [CmdletBinding()]
