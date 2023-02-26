@@ -25,7 +25,8 @@
         "powershell"
     ],
     "cSpell.words": [
-        "Hashtable"
+        "Hashtable",
+        "notin"
     ],
     "cSpell.ignorePaths": [
         ".git"
