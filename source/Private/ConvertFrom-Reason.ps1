@@ -4,14 +4,14 @@
 
     .DESCRIPTION
         This command converts an array of [Reason] that is returned by the command
-        `New-Reason`. The result is an array of the type `[System.Collections.Hashtable]`
+        `Resolve-Reason`. The result is an array of the type `[System.Collections.Hashtable]`
         that can be returned as the value of a DSC resource's property **Reasons**.
 
     .PARAMETER Reason
-       Specifies an array of `[Reason]`. Normally the result from the command `New-Reason`.
+       Specifies an array of `[Reason]`. Normally the result from the command `Resolve-Reason`.
 
     .EXAMPLE
-        New-Reason -Reason (New-Reason) -ResourceName 'MyResource'
+        Resolve-Reason -Reason (Resolve-Reason) -ResourceName 'MyResource'
 
         Returns an array of `[System.Collections.Hashtable]` with the converted
         `[Reason[]]`.

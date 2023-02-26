@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - DscResource.Base
   - Enable Pester's new code coverage method.
-  - The private function `ConvertTo-Reason` was renamed `New-Reason`.
+  - The private function `ConvertTo-Reason` was renamed `Resolve-Reason`.
 - `ResourceBase`
   - The property `Reasons` in derived class-based resources is now expected
     to use the type `[System.Collections.Hashtable[]]` ([issue #4](https://github.com/dsccommunity/DscResource.Base/issues/4)).
