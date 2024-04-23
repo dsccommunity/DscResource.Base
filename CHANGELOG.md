@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ResourceBase`
   - Fixed style changed.
 
+### Changed
+
+- azure-pipelines
+  - Move to PublishCodeCoverageResults@2
+
 ## [1.1.0] - 2023-02-26
 
 ### Added
