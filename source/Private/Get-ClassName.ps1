@@ -8,12 +8,12 @@
         all inherited classes
 
     .PARAMETER InputObject
-       The object to be evaluated.
+        The object to be evaluated.
 
     .PARAMETER Recurse
-       Specifies if the class name of inherited classes shall be returned. The
-       recursive stops when the first object of the type `[System.Object]` is
-       found.
+        Specifies if the class name of inherited classes shall be returned. The
+        recursive stops when the first object of the type `[System.Object]` is
+        found.
 
     .EXAMPLE
         Get-ClassName -InputObject $this -Recurse

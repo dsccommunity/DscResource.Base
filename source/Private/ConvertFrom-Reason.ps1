@@ -8,7 +8,7 @@
         that can be returned as the value of a DSC resource's property **Reasons**.
 
     .PARAMETER Reason
-       Specifies an array of `[Reason]`. Normally the result from the command `Resolve-Reason`.
+        Specifies an array of `[Reason]`. Normally the result from the command `Resolve-Reason`.
 
     .EXAMPLE
         Resolve-Reason -Reason (Resolve-Reason) -ResourceName 'MyResource'

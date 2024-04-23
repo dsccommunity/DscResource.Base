@@ -7,11 +7,11 @@
         `Compare-DscParameterState`. The result is an array of the type `[Reason]`.
 
     .PARAMETER Property
-       The result from the command Compare-DscParameterState.
+        The result from the command Compare-DscParameterState.
 
     .PARAMETER ResourceName
-       The name of the resource. Will be used to populate the property Code with
-       the correct value.
+        The name of the resource. Will be used to populate the property Code with
+        the correct value.
 
     .EXAMPLE
         Resolve-Reason -Property (Compare-DscParameterState) -ResourceName 'MyResource'

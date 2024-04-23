@@ -6,7 +6,7 @@
         Returns a hashtable with property name and their expected value.
 
     .PARAMETER CompareResult
-       The result from Compare-DscParameterState.
+        The result from Compare-DscParameterState.
 
     .EXAMPLE
         ConvertFrom-CompareResult -CompareResult (Compare-DscParameterState)
