@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ResourceBase`
   - Fixed style changed.
 
+### Changed
+
+- Get-LocalizedDataRecursive
+  - Move strings to localized versions ([issue #7](https://github.com/dsccommunity/DscResource.Base/issues/7)).
+  - Fix various formatting issues
+
 ## [1.1.0] - 2023-02-26
 
 ### Added
