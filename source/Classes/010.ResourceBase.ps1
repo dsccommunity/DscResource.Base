@@ -190,11 +190,11 @@ class ResourceBase
 
         if ($isInDesiredState)
         {
-            Write-Verbose $this.localizedData.InDesiredState
+            Write-Verbose -Message $this.localizedData.InDesiredState
         }
         else
         {
-            Write-Verbose $this.localizedData.NotInDesiredState
+            Write-Verbose -Message $this.localizedData.NotInDesiredState
         }
 
         return $isInDesiredState
