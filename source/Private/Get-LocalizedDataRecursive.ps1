@@ -30,7 +30,7 @@
         instance.
 
     .EXAMPLE
-        Get-LocalizedDataRecursive -ClassName (Get-ClassNamn -InputObject $this -Recurse)
+        Get-LocalizedDataRecursive -ClassName (Get-ClassName -InputObject $this -Recurse)
 
         Returns a hashtable containing all the localized strings for the current
         instance and any inherited (parent) classes.
