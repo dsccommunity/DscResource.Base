@@ -97,7 +97,7 @@ stages:
             condition: succeededOrFailed()
             inputs:
               testResultsFormat: 'NUnit'
-              testResultsFiles: '$(buildFolderName)/$(testResultFolderName)/NUnit*.xml'
+              testResultsFiles: '$(buildFolderName)/$(testResultFolderName)/DscTestObject*.xml'
               testRunTitle: 'HQRM'
 
       - job: Test_Unit
