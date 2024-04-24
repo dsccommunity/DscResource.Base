@@ -7,13 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- DscResource.Base
+  - Test results is now found for the HQRM tests when run in the pipeline.
 - `ResourceBase`
   - Fixed style changed.
 
 ### Changed
 
-- azure-pipelines
-  - Move to PublishCodeCoverageResults@2
+- DscResource.Base
+  - Move code coverage task in the pipeline to use task `PublishCodeCoverageResults@2`.
 
 ## [1.1.0] - 2023-02-26
 
