@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- DscResource.Base
+  - Test results is now found for the HQRM tests when run in the pipeline.
 - `ResourceBase`
   - Fixed style changed.
 
 ### Changed
 
-- Get-LocalizedDataRecursive
+- DscResource.Base
+  - Move code coverage task in the pipeline to use task `PublishCodeCoverageResults@2`.
+- `Get-LocalizedDataRecursive`
   - Move strings to localized versions ([issue #7](https://github.com/dsccommunity/DscResource.Base/issues/7)).
   - Fix various formatting issues
 
