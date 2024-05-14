@@ -30,7 +30,7 @@
         instance.
 
     .EXAMPLE
-        Get-LocalizedDataRecursive -ClassName (Get-ClassNamn -InputObject $this -Recurse)
+        Get-LocalizedDataRecursive -ClassName (Get-ClassName -InputObject $this -Recurse)
 
         Returns a hashtable containing all the localized strings for the current
         instance and any inherited (parent) classes.
@@ -73,7 +73,7 @@ function Get-LocalizedDataRecursive
                 $localizationFileName = '{0}.strings' -f $name
             }
 
-            Write-Debug -Message ('Importing localization data from {0}' -f $localizationFileName)
+            Write-Debug -Message ($script:localizedData.DebugImportingLocalizationData -f $localizationFileName)
 
             if ($name -eq 'ResourceBase')
             {
@@ -88,7 +88,7 @@ function Get-LocalizedDataRecursive
             else
             {
                 # Assuming derived class that is not part of this module.
-                throw 'The class ''{0}'' is not part of module DscResource.Base and no BaseDirectory was passed. Please provide BaseDirectory.'
+                throw ($script:localizedData.ThrowClassIsNotPartOfModule -f $name)
             }
 
             # Get localized data for the class
@@ -107,7 +107,7 @@ function Get-LocalizedDataRecursive
 
     end
     {
-        Write-Debug -Message ('Localization data: {0}' -f ($localizedData | ConvertTo-JSON))
+        Write-Debug -Message ($script:localizedData.DebugShowAllLocalizationData -f ($localizedData | ConvertTo-JSON))
 
         return $localizedData
     }

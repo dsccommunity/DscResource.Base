@@ -47,8 +47,8 @@ class ResourceBase
 
         <#
             TODO: When this fails, for example when the localized string file is missing
-                  the LCM returns the error 'Failed to create an object of PowerShell
-                  class SqlDatabasePermission' instead of the actual error that occurred.
+                the LCM returns the error 'Failed to create an object of PowerShell
+                class SqlDatabasePermission' instead of the actual error that occurred.
         #>
         $this.localizedData = Get-LocalizedDataRecursive @getLocalizedDataRecursiveParameters
     }
