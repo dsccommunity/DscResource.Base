@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2024-08-17
+
 ### Fixed
 
 - Correcting module manifest and help file description.
