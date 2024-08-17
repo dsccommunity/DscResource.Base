@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Correcting module manifest and help file description.
+
 ## [1.1.1] - 2024-06-11
 
 ### Fixed

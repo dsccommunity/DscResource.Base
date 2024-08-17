@@ -18,7 +18,7 @@
     Copyright            = 'Copyright the DSC Community contributors. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description          = 'Module with DSC resources for deployment and configuration of Microsoft SQL Server.'
+    Description          = 'This module contains common classes that can be used for class-based DSC resources development.'
 
     # Minimum version of the Windows PowerShell engine required by this module
     PowerShellVersion    = '5.0'

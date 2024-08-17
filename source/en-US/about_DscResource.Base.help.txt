@@ -5,7 +5,7 @@ SHORT DESCRIPTION
     Contains standard classes for class-based resource development.
 
 LONG DESCRIPTION
-    This module contains standard classes for class-based resource development.
+    This module contains common classes that can be used for class-based DSC resources development.
 
 EXAMPLES
     PS C:\> using module 'DscResource.Base'
@@ -22,4 +22,4 @@ SEE ALSO
     - https://github.com/dsccommunity/DscResource.Base
 
 KEYWORDS
-    DSC, DscResource, SqlServer
+    DSC, DscResource, Classes

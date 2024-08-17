@@ -50,7 +50,7 @@
         'AvoidUsingDoubleQuotesForConstantString'
         'UseShouldProcessForStateChangingFunctions'
 
-        # Rules from the modules DscResource.AnalyzerRules and SqlServerDsc.AnalyzerRules
+        # Rules from the modules DscResource.AnalyzerRules
         'Measure-*'
 
         # Rules from the module Indented.ScriptAnalyzerRules
