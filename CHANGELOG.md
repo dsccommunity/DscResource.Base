@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correcting module manifest and help file description.
+- Update build pipeline to use GitVersion v5.
 
 ## [1.1.1] - 2024-06-11
 
