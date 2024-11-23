@@ -21,7 +21,9 @@
     'Sampler.GitHubTasks'          = 'latest'
     MarkdownLinkCheck              = 'latest'
     'DscResource.Test'             = 'latest'
+
     'DscResource.DocGenerator'     = 'latest'
+    PlatyPS                        = 'latest'
 
     # Analyzer rules
     'DscResource.AnalyzerRules'    = 'latest'
