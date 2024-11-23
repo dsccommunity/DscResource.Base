@@ -96,7 +96,6 @@ function Get-LocalizedDataRecursive
                         $name
                     )
                 )
-                #throw ($script:localizedData.ThrowClassIsNotPartOfModule -f $name)
             }
 
             # Get localized data for the class
