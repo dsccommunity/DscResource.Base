@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `build.yaml`
   - Move docs to own task
   - Remove `VersionedOutputDirectory` as default value is `True`
+- `build.ps1`
+  - Update from Sampler
+- `Resolve-Dependency.ps1`
+  - Update from Sampler
 
 ### Fixed
 
