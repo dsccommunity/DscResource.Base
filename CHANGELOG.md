@@ -5,6 +5,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `RequiredModules`
+  - Add PlatyPS
+- `Resolve-Dependency`
+  - Add latest config
+- `build.yaml`
+  - Move docs to own task
+  - Remove `VersionedOutputDirectory` as default value is `True`
+- `build.ps1`
+  - Update from Sampler
+- `Resolve-Dependency.ps1`
+  - Update from Sampler
+
+### Fixed
+
+- `Get-LocalizedDataRecursive`
+  - Switch `throw` to use `TerminatingError` [issue #16](https://github.com/dsccommunity/DscResource.Base/issues/16)
+
 ## [1.1.2] - 2024-08-17
 
 ### Fixed
