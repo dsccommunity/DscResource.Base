@@ -19,6 +19,9 @@ class ResourceBase
     # Property for derived class to set properties that should not be enforced.
     hidden [System.String[]] $ExcludeDscProperties = @()
 
+    # Property for derived class to enable Enums to be used as optional properties. The usable Enum values should start at value 1.
+    hidden [System.Boolean] $FeatureOptionalEnums = $false
+
     # Default constructor
     ResourceBase()
     {
@@ -227,6 +230,11 @@ class ResourceBase
         # Get the desired state, all assigned properties that has an non-null value.
         $desiredState = $this | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional') -HasValue
 
+        if ($this.FeatureOptionalEnums)
+        {
+            $desiredState = $desiredState | Remove-ZeroedEnums
+        }
+
         $CompareDscParameterState = @{
             CurrentValues     = $currentState
             DesiredValues     = $desiredState
@@ -249,6 +257,11 @@ class ResourceBase
     {
         # Get the properties that has a non-null value and is not of type Read.
         $desiredState = $this | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional') -HasValue
+
+        if ($this.FeatureOptionalEnums)
+        {
+            $desiredState = $desiredState | Remove-ZeroedEnums
+        }
 
         $this.AssertProperties($desiredState)
     }
