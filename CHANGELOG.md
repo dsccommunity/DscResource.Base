@@ -5,8 +5,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Remove-ZeroedEnums`
+  - Added private function to remove enums with a zero value from a hashtable.
+
 ### Changed
 
+- `ResourceBase`
+  - Add feature flag to allow use of enums on optional properties.
 - `RequiredModules`
   - Add PlatyPS
 - `Resolve-Dependency`
