@@ -1,4 +1,23 @@
-function Remove-ZeroedEnums
+<#
+    .SYNOPSIS
+        Removes any properties from a hashable which have values that are
+        type [System.Enum] and have an [System.Int32] value of 0.
+
+    .DESCRIPTION
+        Removes any properties from a hashable which have values that are
+        type [System.Enum] and have an [System.Int32] value of 0.
+
+    .PARAMETER InputObject
+        The hashtable to be checked.
+
+    .EXAMPLE
+        Test-IsZeroedEnum -InputObject $ht
+
+    .OUTPUTS
+        [System.Collections.Hashtable]
+#>
+
+function Test-IsZeroedEnum
 {
     [CmdletBinding()]
     [OutputType([System.Collections.Hashtable])]

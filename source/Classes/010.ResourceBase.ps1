@@ -232,7 +232,7 @@ class ResourceBase
 
         if ($this.FeatureOptionalEnums)
         {
-            $desiredState = $desiredState | Remove-ZeroedEnums
+            $desiredState = $desiredState | Test-IsZeroedEnum
         }
 
         $CompareDscParameterState = @{
@@ -260,7 +260,7 @@ class ResourceBase
 
         if ($this.FeatureOptionalEnums)
         {
-            $desiredState = $desiredState | Remove-ZeroedEnums
+            $desiredState = $desiredState | Test-IsZeroedEnum
         }
 
         $this.AssertProperties($desiredState)
