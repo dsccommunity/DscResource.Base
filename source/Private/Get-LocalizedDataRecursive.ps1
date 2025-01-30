@@ -88,7 +88,14 @@ function Get-LocalizedDataRecursive
             else
             {
                 # Assuming derived class that is not part of this module.
-                throw ($script:localizedData.ThrowClassIsNotPartOfModule -f $name)
+                $PSCmdlet.ThrowTerminatingError(
+                    [System.Management.Automation.ErrorRecord]::new(
+                        $script:localizedData.ThrowClassIsNotPartOfModule,
+                        'DRB0002',
+                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                        $name
+                    )
+                )
             }
 
             # Get localized data for the class
