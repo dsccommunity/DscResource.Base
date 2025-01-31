@@ -10,7 +10,7 @@ BeforeDiscovery {
             if (-not (Get-Module -Name 'DscResource.Test' -ListAvailable))
             {
                 # Redirect all streams to $null, except the error stream (stream 2)
-                & "$PSScriptRoot/../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
+                & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
             }
 
             # If the dependencies has not been resolved, this will throw an error.
@@ -42,4 +42,110 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Test-IsZeroedEnum' -Tag 'Private' {}
+Describe 'Test-IsZeroedEnum' -Tag 'Private' {
+    Context 'When the hashtable does not contain zeroed Enum properties' {
+        Context 'When input is passed as a named variable' {
+            It 'Should return the same amount of values' {
+                InModuleScope -ScriptBlock {
+                    Set-StrictMode -Version 1.0
+
+                    $testParams = @{
+                        Variable1 = 'SomeString'
+                        Variable2 = [System.Int32] 10
+                        Variable3 = $true
+                        Variable4 = New-TimeSpan -Days 8
+                    }
+
+                    $result = Test-IsZeroedEnum -InputObject $testParams
+
+                    $result.Count | Should -Be $testParams.Count
+                }
+            }
+        }
+
+        Context 'When input is passed via pipeline' {
+            It 'Should return the same amount of values' {
+                InModuleScope -ScriptBlock {
+                    Set-StrictMode -Version 1.0
+
+                    $testParams = @{
+                        Variable1 = 'SomeString'
+                        Variable2 = [System.Int32] 10
+                        Variable3 = $true
+                        Variable4 = New-TimeSpan -Days 8
+                    }
+
+                    $result = $testParams | Test-IsZeroedEnum
+
+                    $result.Count | Should -Be $testParams.Count
+                }
+            }
+        }
+    }
+
+    Context 'When the hashtable does contain zeroed Enum properties' {
+        Context 'When input is passed as a named variable' {
+            It 'Should return the same amount of values' {
+                InModuleScope -ScriptBlock {
+                    Set-StrictMode -Version 1.0
+
+                    enum MyMockEnum
+                    {
+                        Value1 = 1
+                        Value2
+                        Value3
+                        Value4
+                        Value5
+                    }
+
+                    $testParams = @{
+                        Variable1 = 'SomeString'
+                        Variable2 = [System.Int32] 10
+                        Variable3 = $true
+                        Variable4 = New-TimeSpan -Days 8
+                        Variable5 = [MyMockEnum]::Value1
+                        Variable6 = [MyMockEnum]
+                        Variable7 = [MyMockEnum]::Value3
+                        Variable8 = [MyMockEnum]
+                    }
+
+                    $result = Test-IsZeroedEnum -InputObject $testParams
+
+                    $result.Count | Should -Be ($testParams.Count - 2)
+                }
+            }
+        }
+
+        Context 'When input is passed via pipeline' {
+            It 'Should return the same amount of values' {
+                InModuleScope -ScriptBlock {
+                    Set-StrictMode -Version 1.0
+
+                    enum MyMockEnum
+                    {
+                        Value1 = 1
+                        Value2
+                        Value3
+                        Value4
+                        Value5
+                    }
+
+                    $testParams = @{
+                        Variable1 = 'SomeString'
+                        Variable2 = [System.Int32] 10
+                        Variable3 = $true
+                        Variable4 = New-TimeSpan -Days 8
+                        Variable5 = [MyMockEnum]::Value1
+                        Variable6 = [MyMockEnum]
+                        Variable7 = [MyMockEnum]::Value3
+                        Variable8 = [MyMockEnum]
+                    }
+
+                    $result = $testParams | Test-IsZeroedEnum
+
+                    $result.Count | Should -Be ($testParams.Count - 2)
+                }
+            }
+        }
+    }
+}

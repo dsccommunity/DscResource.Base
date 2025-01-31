@@ -34,7 +34,7 @@ function Test-IsZeroedEnum
         foreach ($property in $InputObject.Keys)
         {
             $value = $InputObject.$property
-            if ($value -is [System.Enum] -and [System.Int32]$value.value__ -eq 0)
+            if ($value.IsEnum -and [System.Int32]$value.value__ -eq 0)
             {
                 continue
             }
