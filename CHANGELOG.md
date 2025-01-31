@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Resource.Base`
+  - Add optional feature flag to handle using Enums as optional properties.
+    This requires setting the starting value of the Enum to 1 so it is
+    initialized as 0. Fixes [Issue #22](https://github.com/dsccommunity/DscResource.Base/issues/22).
+
+    To use, set `$this.FeatureOptionalEnums = $true` in your class constructor.
 - `Test-IsZeroedEnum`
   - Added private function to remove enums with a zero value from a hashtable.
 
