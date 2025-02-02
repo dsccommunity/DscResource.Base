@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     initialized as 0. Fixes [Issue #22](https://github.com/dsccommunity/DscResource.Base/issues/22).
 
     To use, set `$this.FeatureOptionalEnums = $true` in your class constructor.
-- `Test-IsZeroedEnum`
+- `Clear-ZeroedEnumPropertyValue`
   - Added private function to remove enums with a zero value from a hashtable.
 
 ### Changed

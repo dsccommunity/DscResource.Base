@@ -11,13 +11,13 @@
         The hashtable to be checked.
 
     .EXAMPLE
-        Test-IsZeroedEnum -InputObject $ht
+        Clear-ZeroedEnumPropertyValue -InputObject $ht
 
     .OUTPUTS
         [System.Collections.Hashtable]
 #>
 
-function Test-IsZeroedEnum
+function Clear-ZeroedEnumPropertyValue
 {
     [CmdletBinding()]
     [OutputType([System.Collections.Hashtable])]

@@ -42,7 +42,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Test-IsZeroedEnum' -Tag 'Private' {
+Describe 'Clear-ZeroedEnumPropertyValue' -Tag 'Private' {
     Context 'When the hashtable does not contain zeroed Enum properties' {
         Context 'When input is passed as a named variable' {
             It 'Should return the same amount of values' {
@@ -56,7 +56,7 @@ Describe 'Test-IsZeroedEnum' -Tag 'Private' {
                         Variable4 = New-TimeSpan -Days 8
                     }
 
-                    $result = Test-IsZeroedEnum -InputObject $testParams
+                    $result = Clear-ZeroedEnumPropertyValue -InputObject $testParams
 
                     $result.Count | Should -Be $testParams.Count
                 }
@@ -75,7 +75,7 @@ Describe 'Test-IsZeroedEnum' -Tag 'Private' {
                         Variable4 = New-TimeSpan -Days 8
                     }
 
-                    $result = $testParams | Test-IsZeroedEnum
+                    $result = $testParams | Clear-ZeroedEnumPropertyValue
 
                     $result.Count | Should -Be $testParams.Count
                 }
@@ -109,7 +109,7 @@ Describe 'Test-IsZeroedEnum' -Tag 'Private' {
                         Variable8 = [MyMockEnum]
                     }
 
-                    $result = Test-IsZeroedEnum -InputObject $testParams
+                    $result = Clear-ZeroedEnumPropertyValue -InputObject $testParams
 
                     $result.Count | Should -Be ($testParams.Count - 2)
                 }
@@ -141,7 +141,7 @@ Describe 'Test-IsZeroedEnum' -Tag 'Private' {
                         Variable8 = [MyMockEnum]
                     }
 
-                    $result = $testParams | Test-IsZeroedEnum
+                    $result = $testParams | Clear-ZeroedEnumPropertyValue
 
                     $result.Count | Should -Be ($testParams.Count - 2)
                 }
