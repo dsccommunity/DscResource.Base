@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Update from Sampler
 - `Resolve-Dependency.ps1`
   - Update from Sampler
+- `Clear-ZeroedEnumPropertyValue`
+  - Fixed enum type check.
 
 ### Fixed
 
