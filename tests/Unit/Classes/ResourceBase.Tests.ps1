@@ -10,7 +10,7 @@ BeforeDiscovery {
             if (-not (Get-Module -Name 'DscResource.Test' -ListAvailable))
             {
                 # Redirect all streams to $null, except the error stream (stream 2)
-                & "$PSScriptRoot/../../build.ps1" -Tasks 'noop' 2>&1 4>&1 5>&1 6>&1 > $null
+                & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
             }
 
             # If the dependencies has not been resolved, this will throw an error.
@@ -113,13 +113,103 @@ Describe 'ResourceBase\AssertProperties()' -Tag 'AssertProperties' {
         }
     }
 
-
     It 'Should not throw' {
         $mockDesiredState = @{
             MyProperty1 = 'MyValue1'
         }
 
         { $mockResourceBaseInstance.AssertProperties($mockDesiredState) } | Should -Not -Throw
+    }
+}
+
+Describe 'ResourceBase\Assert()' -Tag 'Assert' {
+    Context 'When the system is in the desired state' {
+        BeforeAll {
+            Mock -CommandName Get-ClassName -MockWith {
+                # Only return localized strings for this class name.
+                @('ResourceBase')
+            }
+
+            Mock -CommandName Get-DscProperty -MockWith {
+                return @{
+                    MyResourceKeyProperty1 = 'SomeString'
+                }
+            }
+
+            Mock -CommandName Clear-ZeroedEnumPropertyValue
+
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+enum MyMockEnum {
+Value1 = 1
+Value2
+Value3
+Value4
+}
+
+class MyMockResource : ResourceBase
+{
+[DscProperty(Key)]
+[System.String]
+$MyResourceKeyProperty1
+
+[DscProperty()]
+[System.String]
+$MyResourceProperty2
+
+[DscProperty()]
+[MyMockEnum]
+$MyResourceProperty3
+
+[DscProperty()]
+[MyMockEnum]
+$MyResourceProperty4 = [MyMockEnum]::Value4
+
+[DscProperty(NotConfigurable)]
+[System.String]
+$MyResourceReadProperty
+
+MyMockResource () {
+    $this.FeatureOptionalEnums = $true
+}
+
+[ResourceBase] Get()
+{
+    # Creates a new instance of the mock instance MyMockResource.
+    $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+
+    $currentStateInstance.MyResourceProperty2 = 'MyValue1'
+    $currentStateInstance.MyResourceProperty4 = [MyMockEnum]::Value4
+    $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
+
+    return $currentStateInstance
+}
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+        }
+
+        It 'Should have correctly instantiated the resource class' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+            }
+        }
+
+        Context 'When no properties are enforced' {
+            It 'Should not return any property to enforce' {
+                InModuleScope -ScriptBlock {
+                    $mockResourceBaseInstance.Assert()
+                }
+
+                Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Clear-ZeroedEnumPropertyValue -Exactly -Times 1 -Scope It
+            }
+        }
     }
 }
 
