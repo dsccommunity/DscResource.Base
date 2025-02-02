@@ -104,9 +104,9 @@ Describe 'Clear-ZeroedEnumPropertyValue' -Tag 'Private' {
                         Variable3 = $true
                         Variable4 = New-TimeSpan -Days 8
                         Variable5 = [MyMockEnum]::Value1
-                        Variable6 = [MyMockEnum]
+                        Variable6 = [MyMockEnum]::new()
                         Variable7 = [MyMockEnum]::Value3
-                        Variable8 = [MyMockEnum]
+                        Variable8 = [MyMockEnum]::new()
                     }
 
                     $result = Clear-ZeroedEnumPropertyValue -InputObject $testParams
@@ -136,9 +136,9 @@ Describe 'Clear-ZeroedEnumPropertyValue' -Tag 'Private' {
                         Variable3 = $true
                         Variable4 = New-TimeSpan -Days 8
                         Variable5 = [MyMockEnum]::Value1
-                        Variable6 = [MyMockEnum]
+                        Variable6 = [MyMockEnum]::new()
                         Variable7 = [MyMockEnum]::Value3
-                        Variable8 = [MyMockEnum]
+                        Variable8 = [MyMockEnum]::new()
                     }
 
                     $result = $testParams | Clear-ZeroedEnumPropertyValue
