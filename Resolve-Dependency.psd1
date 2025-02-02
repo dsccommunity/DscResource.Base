@@ -3,7 +3,7 @@
     AllowPrerelease                            = $false
     WithYAML                                   = $true # Will also bootstrap PowerShell-Yaml to read other config files
 
-    #UseModuleFast = $true
+    UseModuleFast                              = $true
     #ModuleFastVersion = '0.1.2'
     #ModuleFastBleedingEdge = $true
 
