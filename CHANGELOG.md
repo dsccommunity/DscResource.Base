@@ -5,6 +5,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ResourceBase`
+  - Added a new method `NormalizeProperties` that can be overridden in a
+    derived class to provide custom normalization logic. This method can
+    be used to normalize the properties of a desired state prior to the
+    methods `AssertProperties`, `GetCurrentState`, and `Modify` being called.
+    Default there is no normalization of properties. Fixes [issue #27](https://github.com/dsccommunity/DscResource.Base/issues/27).
+
 ## [1.2.1] - 2025-02-03
 
 ### Changed
@@ -16,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Resource.Base`
+- `ResourceBase`
   - Add optional feature flag to handle using Enums as optional properties.
     This requires setting the starting value of the Enum to 1 so it is
     initialized as 0. Fixes [Issue #22](https://github.com/dsccommunity/DscResource.Base/issues/22).
