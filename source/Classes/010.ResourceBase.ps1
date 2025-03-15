@@ -58,6 +58,8 @@ class ResourceBase
 
     [ResourceBase] Get()
     {
+        $this.Normalize()
+
         $this.Assert()
 
         # Get all key properties.
@@ -135,6 +137,8 @@ class ResourceBase
 
     [void] Set()
     {
+        $this.Normalize()
+
         # Get all key properties.
         $keyProperty = $this | Get-DscProperty -Attribute 'Key'
 
@@ -171,6 +175,8 @@ class ResourceBase
 
     [System.Boolean] Test()
     {
+        $this.Normalize()
+
         # Get all key properties.
         $keyProperty = $this | Get-DscProperty -Attribute 'Key'
 
@@ -227,13 +233,7 @@ class ResourceBase
     #>
     hidden [System.Collections.Hashtable[]] Compare([System.Collections.Hashtable] $currentState, [System.String[]] $excludeProperties)
     {
-        # Get the desired state, all assigned properties that has an non-null value.
-        $desiredState = $this | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional') -HasValue
-
-        if ($this.FeatureOptionalEnums)
-        {
-            $desiredState = $desiredState | Clear-ZeroedEnumPropertyValue
-        }
+        $desiredState = $this.GetDesiredState()
 
         $CompareDscParameterState = @{
             CurrentValues     = $currentState
@@ -255,6 +255,18 @@ class ResourceBase
     # This method should normally not be overridden.
     hidden [void] Assert()
     {
+        $this.AssertProperties($this.GetDesiredState())
+    }
+
+    # This method should normally not be overridden.
+    hidden [void] Normalize()
+    {
+        $this.NormalizeProperties($this.GetDesiredState())
+    }
+
+    # This is a private method and should normally not be overridden.
+    hidden [System.Collections.Hashtable] GetDesiredState()
+    {
         # Get the properties that has a non-null value and is not of type Read.
         $desiredState = $this | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional') -HasValue
 
@@ -263,7 +275,7 @@ class ResourceBase
             $desiredState = $desiredState | Clear-ZeroedEnumPropertyValue
         }
 
-        $this.AssertProperties($desiredState)
+        return $desiredState
     }
 
     <#
@@ -273,6 +285,16 @@ class ResourceBase
     #>
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidEmptyNamedBlocks', '')]
     hidden [void] AssertProperties([System.Collections.Hashtable] $properties)
+    {
+    }
+
+    <#
+        This method can be overridden if resource specific property normalization
+        is needed. The parameter properties will contain the properties that was
+        assigned a value.
+    #>
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidEmptyNamedBlocks', '')]
+    hidden [void] NormalizeProperties([System.Collections.Hashtable] $properties)
     {
     }
 
