@@ -9,7 +9,7 @@ Please leave comments, feature requests, and bug reports for this module in
 the [issues section](https://github.com/dsccommunity/DscResource.Base/issues)
 for this repository.
 
-## Getting started
+## Getting Started
 
 This module provides a base class for creating DSC resources.
 
@@ -17,18 +17,20 @@ Assuming you are using the DscCommunity Sampler template, add `DscResource.Base`
 
 Ensure that your `prefix.ps1` contains `using module .\Modules\DscResource.Base` to import the module.
 
-Add the following to a new file:
+Add the following into a new file (typical location `source\Classes`):
 
 ```powershell
 [DscResource()]
 class MyDscResource : ResourceBase
 {
     <#
-    PROPERTIES / PARAMETERS
+        PROPERTIES / PARAMETERS
     #>
 
     MyDscResource () : base ($PSScriptRoot)
     {
+        $this.ExcludeDscProperties = @()
+        $this.FeatureOptionalEnums = $false
     }
 
     # Required DSC Methods, these call the method in the base class.
@@ -62,10 +64,29 @@ class MyDscResource : ResourceBase
     hidden [void] Modify([System.Collections.Hashtable] $properties)
     {
     }
+
+    # OPTIONAL
+    <#
+        This method can be overridden if resource specific property asserts are
+        needed. The parameter properties will contain the properties that was
+        assigned a value.
+    #>
+    hidden [void] AssertProperties([System.Collections.Hashtable] $properties)
+    {
+    }
+
+    <#
+        This method can be overridden if resource specific property normalization
+        is needed. The parameter properties will contain the properties that was
+        assigned a value.
+    #>
+    hidden [void] NormalizeProperties([System.Collections.Hashtable] $properties)
+    {
+    }
 }
 ```
 
-### Parameters
+### Parameters/Properties
 
 Value type parameters like `Boolean`, `Int`, `UInt` must have their type made
 nullable e.g. `[Nullable[System.Boolean]]`.
@@ -73,6 +94,70 @@ nullable e.g. `[Nullable[System.Boolean]]`.
 Reference type parameters like `String` do not have this requirement.
 
 Enums may be used, but only for parameters marked `Key` or `Mandatory`.
+
+There is an optional feature flag `FeatureOptionalEnums` which when enabled will
+allow the use of Enums for optional properties. These do require special consideration,
+the Enum must be created with a starting value of 1. Leaving 0 for uninitialized.
+This is due to Enums not being Nullable in PowerShell DSC.
+
+```powershell
+enum MyEnum
+{
+    Square = 1
+    Circle
+}
+```
+
+#### Ensure
+
+The base class ships with an `Ensure` Enum which you may use. This is typically mandatory.
+
+```powershell
+[DscProperty(Mandatory)]
+[Ensure]
+$Ensure
+```
+
+#### Reasons
+
+The base class will populate the `Reasons` parameter if the actual state does not
+match the current state.
+
+To utilize this you must create your own `Reason` class for the module.
+This is typically is prefixed with the module name. The example below is what is
+used in `SqlServerDsc`.
+
+```powershell
+<#
+    .SYNOPSIS
+        The reason a property of a DSC resource is not in desired state.
+
+    .DESCRIPTION
+        A DSC resource can have a read-only property `Reasons` that the compliance
+        part (audit via Azure Policy) of Azure AutoManage Machine Configuration
+        uses. The property Reasons holds an array of SqlReason. Each SqlReason
+        explains why a property of a DSC resource is not in desired state.
+#>
+
+class SqlReason
+{
+    [DscProperty()]
+    [System.String]
+    $Code
+
+    [DscProperty()]
+    [System.String]
+    $Phrase
+}
+```
+
+This is how you would declare the parameter.
+
+```powershell
+[DscProperty(NotConfigurable)]
+[SqlReason[]]
+$Reasons
+```
 
 ### Constructor
 
@@ -82,45 +167,45 @@ localization files. Without this you may see an error when using the resource of
 not being able to find localization data.
 
 There is a hidden variable available `ExcludeDscProperties`. Adding parameter
-names as strings to this will exclude them from comparison and not cause the
-`Set()` method to be run.
+names as strings to this will exclude them from comparison.
 
 Typically, optional parameters are added here that if populated would not cause
 the resource to not be in the desired state.
 
 ### Methods
 
-The only two methods you must implement are `GetCurrentState()` and `Modify()`.
+The two methods you must implement which are `GetCurrentState()` and `Modify()`.
+There are two optional methods which you may use these are `AssertProperties()` and
+`NormalizeProperties()`.
 
-An optional method `Assert-Properties` is available as a replacement of
-PowerShell `[ValidateScript()]` functionality as this is not available to
-parameters with a `[DscProperty()]` attribute.
-
-#### GetCurrentState()
+#### `GetCurrentState()`
 
 This method is used to get the data and populate a hashtable with the resources parameters.
-This is called by `.Get()`.
+This is called by `Get()`.
 
-The properties passed into this method are a hashtable of any properties marked `Key`.
+The `$properties` argument passed into this method are a hashtable of any
+properties marked `Key`.
+
 These properties should be used for any arguments on commands called within this
- method and not using `$this.ParameterName`
+method and not using `$this.ParameterName`.
 
 The hashable only needs to return the values that are not `$null`. Any that are
 `$null` can be omitted as these are added to the hashtable from the calling
 method.
 
-#### Modify()
+#### `Modify()`
 
 This method is used to change the state of the resource being controlled.
-This is called by `.Set()`.
+This is called by `Set()`.
 
 The properties passed into this method are the ones that need to be enforced and
 are not in the desired state.
 
-This function can either be used for any `Set/Add/Remove` behaviour, but if this
-needs breaking up then additional methods can be created and called from here.
+This function can either be used for any `Set/Add/Remove` behavior, but if this
+needs breaking up then additional methods can be created within your class
+and called here.
 
-#### Assert-Properties()
+#### `AssertProperties()`
 
 This method is used as a replacement for `[ValidateScript()]` on parameters or
 parameter sets as this is not available in class-based DSC resources.
@@ -129,6 +214,16 @@ Scenarios for use are:
 
 - Checking use of exclusive parameters.
 - Validating values are correct e.g. StartTime < EndTime.
+
+#### `NormalizeProperties()`
+
+This method is used to Normalize any parameter values that may have been provided
+by the user but can be standardized.
+
+Scenario examples:
+
+- Formatting a file path
+- Formatting a URL
 
 ## Prerequisites
 
