@@ -47,7 +47,7 @@ class MyDscResource : ResourceBase
 
     <#
         Base method Get() call this method to get the current state as a Hashtable.
-        The properties argument contains any Dsc properties defined as 'Key'.
+        The parameter properties contains any Dsc properties defined as 'Key'.
     #>
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
     {
