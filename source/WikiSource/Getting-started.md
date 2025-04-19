@@ -47,7 +47,7 @@ class MyDscResource : ResourceBase
 
     <#
         Base method Get() call this method to get the current state as a Hashtable.
-        The parameter properties contains any Dsc properties defined as 'Key'.
+        The parameter properties contains any DSC properties defined as 'Key'.
     #>
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
     {
@@ -121,13 +121,13 @@ used in `SqlServerDsc`.
 ```powershell
 <#
     .SYNOPSIS
-        The reason a property of a Dsc resource is not in desired state.
+        The reason a property of a DSC resource is not in desired state.
 
     .DESCRIPTION
-        A Dsc resource can have a read-only property `Reasons` that the compliance
+        A DSC resource can have a read-only property `Reasons` that the compliance
         part of Azure AutoManage Machine Configuration uses.
         The property Reasons holds an array of SqlReason. Each SqlReason
-        explains why a property of a Dsc resource is not in desired state.
+        explains why a property of a DSC resource is not in desired state.
 #>
 
 class SqlReason
@@ -163,7 +163,7 @@ The following properties can be set in the constructor.
 
 #### ExcludeDscProperties
 
-By default all `Key`, `Mandatory` and `Optional` Dsc properties are enforced in
+By default all `Key`, `Mandatory` and `Optional` DSC properties are enforced in
 the base class.
 `ExcludeDscProperties` is used to prevent the provided properties from being enforced.
 This is in the format of a list of strings.
@@ -187,7 +187,7 @@ properties where a default value is not set.
 
 These do require special consideration when a default value is not provided,
 the Enum must be created with a starting value of 1. Leaving 0 for uninitialized.
-This is due to not being able to declare the type as `Nullable` in PowerShell Dsc.
+This is due to not being able to declare the type as `Nullable` in PowerShell DSC.
 
 ```powershell
 enum MyEnum
@@ -253,7 +253,7 @@ and called from here.
 
 This method is called before getting any state or resources and is used to assert
 or validate properties or property sets as this is not available in class-based
-Dsc resources.
+DSC resources.
 
 Example uses:
 
@@ -273,7 +273,7 @@ Example uses:
 ## Localization
 
 String localization is supported in the base class. This allows the use
-of a localization variable in the format `$this.localizedData.MyLocalizedString`
+of a localization variable in the format `$this.localizedData.MyLocalizedStringKey`
 in code and then this be referenced in a `.psd1` file for each language translation.
 
 By default the `en-US` culture must be populated (location `source\en-US`).
@@ -303,6 +303,6 @@ Example populated strings file.
 #>
 
 ConvertFrom-StringData @'
-    MyLocalizedString = This is a localized string with a passed in value '{0}'. (MD0001)
+    MyLocalizedStringKey = This is a localized string with a passed in value '{0}'. (MD0001)
 '@
 ```
