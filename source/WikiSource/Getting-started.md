@@ -45,7 +45,10 @@ class MyDscResource : ResourceBase
         return ([ResourceBase] $this).Test()
     }
 
-    # Base method Get() call this method to get the current state as a Hashtable.
+    <#
+        Base method Get() call this method to get the current state as a Hashtable.
+        The properties argument contains any Dsc properties defined as 'Key'.
+    #>
     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
     {
     }
@@ -61,7 +64,7 @@ class MyDscResource : ResourceBase
     # OPTIONAL
     <#
         This method can be overridden if resource specific property asserts are
-        needed. The parameter properties will contain the properties that was
+        needed. The parameter properties will contain the properties that are
         assigned a value.
     #>
     hidden [void] AssertProperties([System.Collections.Hashtable] $properties)
@@ -70,7 +73,7 @@ class MyDscResource : ResourceBase
 
     <#
         This method can be overridden if resource specific property normalization
-        is needed. The parameter properties will contain the properties that was
+        is needed. The parameter properties will contain the properties that are
         assigned a value.
     #>
     hidden [void] NormalizeProperties([System.Collections.Hashtable] $properties)
@@ -86,20 +89,10 @@ nullable e.g. `[Nullable[System.Boolean]]`.
 
 Reference type properties like `String` are already nullable.
 
-Enums may be used, but only for properties marked `Key` or `Mandatory`.
-
-There is an optional feature flag `FeatureOptionalEnums` which when enabled will
-allow the use of Enums for optional properties. These do require special consideration,
-the Enum must be created with a starting value of 1. Leaving 0 for uninitialized.
-This is due to Enums not being Nullable in PowerShell DSC.
-
-```powershell
-enum MyEnum
-{
-    Square = 1
-    Circle
-}
-```
+Enums may be used, by default only for properties marked `Key` or `Mandatory`.
+There is an optional feature flag available that allows use of Enums for `Optional`
+properties without a default value configured.
+See [Constructor Properties](#constructor-properties).
 
 ### Ensure
 
@@ -128,13 +121,13 @@ used in `SqlServerDsc`.
 ```powershell
 <#
     .SYNOPSIS
-        The reason a property of a DSC resource is not in desired state.
+        The reason a property of a Dsc resource is not in desired state.
 
     .DESCRIPTION
-        A DSC resource can have a read-only property `Reasons` that the compliance
+        A Dsc resource can have a read-only property `Reasons` that the compliance
         part of Azure AutoManage Machine Configuration uses.
         The property Reasons holds an array of SqlReason. Each SqlReason
-        explains why a property of a DSC resource is not in desired state.
+        explains why a property of a Dsc resource is not in desired state.
 #>
 
 class SqlReason
@@ -162,11 +155,66 @@ $Reasons
 The constructor above shows the minimum implementation required.
 `$PSScriptRoot` is passed down to the base class to update the location of the
 localization files. Without this you may see an error when using the resource of
-not being able to find localization data.
+not being able to find localization data. How to use [String Localization](#localization).
 
-There is a hidden variable available `ExcludeDscProperties`. Adding property
-names as strings to this array will exclude them from comparison against current
-state.
+### Constructor Properties
+
+The following properties can be set in the constructor.
+
+#### ExcludeDscProperties
+
+By default all `Key`, `Mandatory` and `Optional` Dsc properties are enforced in
+the base class.
+`ExcludeDscProperties` is used to prevent the provided properties from being enforced.
+This is in the format of a list of strings.
+
+```powershell
+ MyDscResource () : base ($PSScriptRoot)
+    {
+        $this.ExcludeDscProperties = @(
+            'PropertyOne',
+            'PropertyTwo'
+        )
+
+        $this.FeatureOptionalEnums = $false
+    }
+```
+
+#### FeatureOptionalEnums
+
+`FeatureOptionalEnums` when enabled will allow the use of Enums for optional
+properties where a default value is not set.
+
+These do require special consideration when a default value is not provided,
+the Enum must be created with a starting value of 1. Leaving 0 for uninitialized.
+This is due to not being able to declare the type as `Nullable` in PowerShell Dsc.
+
+```powershell
+enum MyEnum
+{
+    Square = 1
+    Circle
+}
+
+[DscResource()]
+class MyDscResource : ResourceBase
+{
+
+    [DscProperty()]
+    [MyEnum]
+    $MyProperty
+
+    MyDscResource () : base ($PSScriptRoot)
+    {
+        $this.ExcludeDscProperties = @(
+            'PropertyOne',
+            'PropertyTwo'
+        )
+
+        $this.FeatureOptionalEnums = $true
+    }
+}
+```
 
 ## Methods
 
@@ -194,7 +242,7 @@ method.
 This method is used to change the state of the resource being controlled.
 This is called by `Set()`.
 
-The properties passed into this method are the ones that need to be enforced and
+The `$properties` passed into this method are the ones that need to be enforced and
 are not in the desired state.
 
 This function can either be used for any `Set/Add/Remove` behavior, but if this
@@ -205,7 +253,7 @@ and called from here.
 
 This method is called before getting any state or resources and is used to assert
 or validate properties or property sets as this is not available in class-based
-DSC resources.
+Dsc resources.
 
 Example uses:
 
@@ -221,3 +269,40 @@ Example uses:
 
 - Formatting a file path
 - Formatting a URL
+
+## Localization
+
+String localization is supported in the base class. This allows the use
+of a localization variable in the format `$this.localizedData.MyLocalizedString`
+in code and then this be referenced in a `.psd1` file for each language translation.
+
+By default the `en-US` culture must be populated (location `source\en-US`).
+The filename must be in the format `ClassName.strings.psd1`. If no strings are
+declared then an empty file must be configured.
+
+Example empty strings file.
+
+```powershell
+<#
+    .SYNOPSIS
+        The localized resource strings in English (en-US) for the
+        class {ClassName}.
+#>
+
+ConvertFrom-StringData @'
+'@
+```
+
+Example populated strings file.
+
+```powershell
+<#
+    .SYNOPSIS
+        The localized resource strings in English (en-US) for the
+        class {ClassName}.
+#>
+
+ConvertFrom-StringData @'
+    MyLocalizedString = This is a localized string with a passed in value '{0}'. (MD0001)
+'@
+```
