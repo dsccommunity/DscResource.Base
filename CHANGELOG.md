@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - How to use this base class. Fixes [#5](https://github.com/dsccommunity/DscResource.Base/issues/5)
   and [#19](https://github.com/dsccommunity/DscResource.Base/issues/19).
 
+### Fixed
+
+- build.yaml
+  - Add `Generate_Wiki_Content`, `Generate_Wiki_Sidebar`, `Clean_Markdown_Metadata`
+docs tasks. Fixes [#32](https://github.com/dsccommunity/DscResource.Base/issues/32).
+
 ## [1.3.0] - 2025-03-15
 
 ### Added
