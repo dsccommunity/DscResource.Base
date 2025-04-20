@@ -9,7 +9,9 @@ Please leave comments, feature requests, and bug reports for this module in
 the [issues section](https://github.com/dsccommunity/DscResource.Base/issues)
 for this repository.
 
-## Getting started
+## Getting Started
+
+Find out how to use this base class in [getting started](https://github.com/dsccommunity/DscResource.Base/wiki/Getting-started).
 
 ## Prerequisites
 
