@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wiki
   - How to use this base class. Fixes [#5](https://github.com/dsccommunity/DscResource.Base/issues/5)
   and [#19](https://github.com/dsccommunity/DscResource.Base/issues/19).
+  - Add WikiContent to release assets.
 
 ### Fixed
 
