@@ -16,6 +16,9 @@ BuildWorkflow:
   docs:
     - Generate_Conceptual_Help
     - Generate_Wiki_Content
+    - Generate_Wiki_Sidebar
+    - Clean_Markdown_Metadata
+    - Package_Wiki_Content
 
   pack:
     - build
@@ -138,6 +141,8 @@ Resolve-Dependency:
 GitHubConfig:
   GitHubFilesToAdd:
     - 'CHANGELOG.md'
+  ReleaseAssets:
+    - output/WikiContent.zip
   GitHubConfigUserName: dscbot
   GitHubConfigUserEmail: dsccommunity@outlook.com
   UpdateChangelogOnPrerelease: false
