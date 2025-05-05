@@ -268,8 +268,12 @@ class ResourceBase
     hidden [System.Collections.Hashtable] GetDesiredState()
     {
         $getDscPropertyParameters = @{
-            Attribute = @('Key', 'Mandatory', 'Optional')
-            HasValue = $true
+            Attribute = @(
+                'Key'
+                'Mandatory'
+                'Optional'
+            )
+            HasValue  = $true
         }
 
         if ($this.FeatureOptionalEnums)
