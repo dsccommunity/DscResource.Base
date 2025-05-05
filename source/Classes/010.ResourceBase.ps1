@@ -267,13 +267,22 @@ class ResourceBase
     # This is a private method and should normally not be overridden.
     hidden [System.Collections.Hashtable] GetDesiredState()
     {
-        # Get the properties that has a non-null value and is not of type Read.
-        $desiredState = $this | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional') -HasValue
+        $getDscPropertyParameters = @{
+            Attribute = @(
+                'Key'
+                'Mandatory'
+                'Optional'
+            )
+            HasValue  = $true
+        }
 
         if ($this.FeatureOptionalEnums)
         {
-            $desiredState = $desiredState | Clear-ZeroedEnumPropertyValue
+            $getDscPropertyParameters.IgnoreZeroEnumValue = $true
         }
+
+        # Get the properties that has a non-null value and is not of type Read.
+        $desiredState = $this | Get-DscProperty @getDscPropertyParameters
 
         return $desiredState
     }

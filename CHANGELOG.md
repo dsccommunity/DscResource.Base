@@ -5,12 +5,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- Removed `Clear-ZeroedEnumPropertyValue` as it was moved and implemented
+  the `Get-DscProperty` command in the _DscResource.Common_ module.
+
 ### Added
 
 - Wiki
   - How to use this base class. Fixes [#5](https://github.com/dsccommunity/DscResource.Base/issues/5)
   and [#19](https://github.com/dsccommunity/DscResource.Base/issues/19).
   - Add WikiContent to release assets.
+
+### Changed
+
+- `ResourceBase`
+  - Refactor `GetDesiredState` method to handle zeroed enum values using
+    `Get-DscProperty` when the property `FeatureOptionalEnums` is set to
+    `$true`.
 
 ### Fixed
 

@@ -152,8 +152,6 @@ Describe 'ResourceBase\Assert()' -Tag 'Assert' {
                 }
             }
 
-            Mock -CommandName Clear-ZeroedEnumPropertyValue
-
             $inModuleScopeScriptBlock = @'
 using module DscResource.Base
 
@@ -222,8 +220,9 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $mockResourceBaseInstance.Assert()
                 }
 
-                Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
-                Should -Invoke -CommandName Clear-ZeroedEnumPropertyValue -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-DscProperty -ParameterFilter {
+                    $IgnoreZeroEnumValue -eq $true
+                } -Exactly -Times 1 -Scope It
             }
         }
     }
@@ -242,8 +241,6 @@ Describe 'ResourceBase\Normalize()' -Tag 'Normalize' {
                     MyResourceKeyProperty1 = 'SomeString'
                 }
             }
-
-            Mock -CommandName Clear-ZeroedEnumPropertyValue
 
             $inModuleScopeScriptBlock = @'
 using module DscResource.Base
@@ -313,8 +310,9 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $mockResourceBaseInstance.Normalize()
                 }
 
-                Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
-                Should -Invoke -CommandName Clear-ZeroedEnumPropertyValue -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-DscProperty -ParameterFilter {
+                    $IgnoreZeroEnumValue -eq $true
+                } -Exactly -Times 1 -Scope It
             }
         }
     }
