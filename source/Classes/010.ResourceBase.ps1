@@ -74,7 +74,7 @@ class ResourceBase
         # Set values returned from the derived class' GetCurrentState().
         foreach ($propertyName in $this.PSObject.Properties.Name)
         {
-            if ($propertyName -in @($getCurrentStateResult.Keys))
+            if ($propertyName -in @($getCurrentStateResult.Keys) -and $null -ne $getCurrentStateResult.$propertyName)
             {
                 $dscResourceObject.$propertyName = $getCurrentStateResult.$propertyName
             }
@@ -114,17 +114,17 @@ class ResourceBase
         }
 
         <#
-            Returns all enforced properties not in desires state, or $null if
-            all enforced properties are in desired state.
-        #>
-        $propertiesNotInDesiredState = $this.Compare($getCurrentStateResult, @())
-
-        <#
             Return the correct values for Reasons property if the derived DSC resource
             has such property and it hasn't been already set by GetCurrentState().
         #>
         if (($this | Test-DscProperty -Name 'Reasons') -and -not $getCurrentStateResult.ContainsKey('Reasons'))
         {
+            <#
+                Returns all enforced properties not in desired state, or $null if
+                all enforced properties are in desired state.
+            #>
+            $propertiesNotInDesiredState = $this.Compare($getCurrentStateResult, @())
+
             # Always return an empty array if all properties are in desired state.
             $dscResourceObject.Reasons = $propertiesNotInDesiredState |
                 Resolve-Reason -ResourceName $this.GetType().Name |
@@ -137,17 +137,13 @@ class ResourceBase
 
     [void] Set()
     {
-        $this.Normalize()
-
         # Get all key properties.
         $keyProperty = $this | Get-DscProperty -Attribute 'Key'
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        $this.Assert()
-
         <#
-            Returns all enforced properties not in desires state, or $null if
+            Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
         $propertiesNotInDesiredState = $this.Compare()
@@ -175,19 +171,15 @@ class ResourceBase
 
     [System.Boolean] Test()
     {
-        $this.Normalize()
-
         # Get all key properties.
         $keyProperty = $this | Get-DscProperty -Attribute 'Key'
 
         Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        $this.Assert()
-
         $isInDesiredState = $true
 
         <#
-            Returns all enforced properties not in desires state, or $null if
+            Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
         $propertiesNotInDesiredState = $this.Compare()
@@ -246,7 +238,7 @@ class ResourceBase
         }
 
         <#
-            Returns all enforced properties not in desires state, or $null if
+            Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
         return (Compare-DscParameterState @CompareDscParameterState)
