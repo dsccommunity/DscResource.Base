@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Refactor `GetDesiredState` method to handle zeroed enum values using
     `Get-DscProperty` when the property `FeatureOptionalEnums` is set to
     `$true`.
+  - Remove calls to `Assert()` and `Normalize()` in `Test()` and `Set()` fixes [#35](https://github.com/dsccommunity/DscResource.Base/issues/35).
+  - Add check for properties not being `$null` fixes [#30](https://github.com/dsccommunity/DscResource.Base/issues/30).
 
 ### Fixed
 
