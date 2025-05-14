@@ -152,8 +152,6 @@ Describe 'ResourceBase\Assert()' -Tag 'Assert' {
                 }
             }
 
-            Mock -CommandName Clear-ZeroedEnumPropertyValue
-
             $inModuleScopeScriptBlock = @'
 using module DscResource.Base
 
@@ -223,7 +221,6 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                 }
 
                 Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
-                Should -Invoke -CommandName Clear-ZeroedEnumPropertyValue -Exactly -Times 1 -Scope It
             }
         }
     }
@@ -242,8 +239,6 @@ Describe 'ResourceBase\Normalize()' -Tag 'Normalize' {
                     MyResourceKeyProperty1 = 'SomeString'
                 }
             }
-
-            Mock -CommandName Clear-ZeroedEnumPropertyValue
 
             $inModuleScopeScriptBlock = @'
 using module DscResource.Base
@@ -314,7 +309,6 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                 }
 
                 Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
-                Should -Invoke -CommandName Clear-ZeroedEnumPropertyValue -Exactly -Times 1 -Scope It
             }
         }
     }
@@ -1748,6 +1742,145 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty3 | Should -Contain 'MyNewValue2'
                 }
             }
+        }
+    }
+}
+
+Describe 'ResourceBase\GetDesiredState()' -Tag 'GetDesiredState' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+    }
+
+    Context 'When FeatureOptionalEnums is disabled' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty3
+
+    [DscProperty(NotConfigurable)]
+    [System.String]
+    $MyResourceReadProperty
+
+    MyMockResource () {
+        $this.FeatureOptionalEnums = $false
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+
+            Mock -CommandName Get-DscProperty -MockWith {
+                return @{
+                    MyResourceKeyProperty1 = 'KeyValue'
+                    MyResourceProperty2 = 'TestValue'
+                    MyResourceProperty3 = 'Value3'
+                }
+            }
+        }
+
+        It 'Should have correctly instantiated the resource class' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+            }
+        }
+
+        It 'Should call Get-DscProperty with the correct parameters' {
+            InModuleScope -ScriptBlock {
+                $null = $mockResourceBaseInstance.GetDesiredState()
+            }
+
+            Should -Invoke -CommandName Get-DscProperty -ParameterFilter {
+                (-not $PesterBoundParameters.ContainsKey('IgnoreZeroEnumValue'))
+            } -Exactly -Times 1 -Scope It
+        }
+
+        It 'Should return the correct hashtable' {
+            InModuleScope -ScriptBlock {
+                $result = $mockResourceBaseInstance.GetDesiredState()
+                $result.Keys | Should -HaveCount 3
+                $result.MyResourceKeyProperty1 | Should -Be 'KeyValue'
+                $result.MyResourceProperty2 | Should -Be 'TestValue'
+                $result.MyResourceProperty3 | Should -Be 'Value3'
+            }
+        }
+    }
+
+    Context 'When FeatureOptionalEnums is enabled' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+enum MyMockEnum {
+    Value1 = 0
+    Value2 = 1
+    Value3 = 2
+}
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    [DscProperty()]
+    [MyMockEnum]
+    $MyResourceEnumProperty = [MyMockEnum]::Value1
+
+    [DscProperty(NotConfigurable)]
+    [System.String]
+    $MyResourceReadProperty
+
+    MyMockResource () {
+        $this.FeatureOptionalEnums = $true
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+
+            Mock -CommandName Get-DscProperty
+        }
+
+        It 'Should have correctly instantiated the resource class' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+            }
+        }
+
+        It 'Should call Get-DscProperty with the correct parameters including IgnoreZeroEnumValue' {
+            InModuleScope -ScriptBlock {
+                $null = $mockResourceBaseInstance.GetDesiredState()
+            }
+
+            Should -Invoke -CommandName Get-DscProperty -ParameterFilter {
+                $IgnoreZeroEnumValue -eq $true
+            } -Exactly -Times 1 -Scope It
         }
     }
 }
