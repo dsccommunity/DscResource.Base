@@ -151,38 +151,29 @@ class ResourceBase
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        # Use new logic
-        if ($this.FeatureNoCompare)
+        if ($this.Test())
         {
-            if ($this.Test())
-            {
-                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-                return
-            }
-        }
-        else # Use old logic
-        {
-            $null = $this.Compare()
-
-            if (-not $this.PropertiesNotInDesiredState)
-            {
-                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-                return
-            }
+            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+            return
         }
 
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
 
-        $propertiesToModify.Keys |
-            ForEach-Object -Process {
-                Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
-            }
+            $propertiesToModify.Keys |
+                ForEach-Object -Process {
+                    Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
+                }
 
-        <#
-            Call the Modify() method with the properties that should be enforced
-            and are not in desired state.
-        #>
-        $this.Modify($propertiesToModify)
+            <#
+                Call the Modify() method with the properties that should be enforced
+                and are not in desired state.
+            #>
+            $this.Modify($propertiesToModify)
+        }
+        else
+        {
+            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+        }
     }
 
     [System.Boolean] Test()
@@ -197,14 +188,7 @@ class ResourceBase
             all enforced properties are in desired state.
             Will call Get().
         #>
-        if ($this.FeatureNoCompare)
-        {
-            $null = $this.Get()
-        }
-        else
-        {
-            $null = $this.Compare()
-        }
+        $this.PropertiesNotInDesiredState = $this.Compare()
 
         if ($this.PropertiesNotInDesiredState)
         {
