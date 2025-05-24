@@ -25,6 +25,9 @@ class ResourceBase
     # Property for derived class to enable Enums to be used as optional properties. The usable Enum values should start at value 1.
     hidden [System.Boolean] $FeatureOptionalEnums = $false
 
+    # Property for derived class to not use Compare() method.
+    hidden [System.Boolean] $FeatureNoCompare = $false
+
     # Default constructor
     ResourceBase()
     {
@@ -177,7 +180,14 @@ class ResourceBase
             all enforced properties are in desired state.
             Will call Get().
         #>
-        $this.Compare()
+        if ($this.FeatureNoCompare)
+        {
+            $this.Get()
+        }
+        else
+        {
+            $this.Compare()
+        }
 
         if ($this.PropertiesNotInDesiredState)
         {
@@ -199,10 +209,10 @@ class ResourceBase
     hidden [System.Collections.Hashtable[]] Compare()
     {
         # Get the current state, all properties except Read properties .
-        $this.Get() | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional')
+        $currentState = $this.Get() | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional')
 
         # Return the properties that are not in desired state, these are set in Get().
-        return $this.PropertiesNotInDesiredState
+        return $this.Compare($currentState, @())
     }
 
     <#
