@@ -1650,12 +1650,6 @@ class MyMockResource : ResourceBase
     {
         $this.mockModifyProperties = $properties
     }
-
-    [System.Boolean] Test()
-    {
-        $this.PropertiesNotInDesiredState = $this.Compare()
-        return $false
-    }
 }
 
 $script:mockResourceBaseInstance = [MyMockResource]::new()
@@ -1728,12 +1722,6 @@ class MyMockResource : ResourceBase
     [void] Modify([System.Collections.Hashtable] $properties)
     {
         $this.mockModifyProperties = $properties
-    }
-
-    [System.Boolean] Test()
-    {
-        $this.PropertiesNotInDesiredState = $this.Compare()
-        return $false
     }
 }
 
