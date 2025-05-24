@@ -188,7 +188,14 @@ class ResourceBase
             all enforced properties are in desired state.
             Will call Get().
         #>
-        $this.Compare()
+        if ($this.FeatureNoCompare)
+        {
+            $this.Get()
+        }
+        else
+        {
+            $this.Compare()
+        }
 
         if ($this.PropertiesNotInDesiredState)
         {
@@ -210,10 +217,10 @@ class ResourceBase
     hidden [System.Collections.Hashtable[]] Compare()
     {
         # Get the current state, all properties except Read properties .
-        $this.Get() | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional')
+        $currentState = $this.Get() | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional')
 
         # Return the properties that are not in desired state, these are set in Get().
-        return $this.PropertiesNotInDesiredState
+        return $this.Compare($currentState, @())
     }
 
     <#
