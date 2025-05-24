@@ -208,7 +208,7 @@ class ResourceBase
         }
         else
         {
-            $this.Compare()
+            $null = $this.Compare()
         }
 
         if ($this.PropertiesNotInDesiredState)
