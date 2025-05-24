@@ -1635,24 +1635,20 @@ class MyMockResource : ResourceBase
 
     [System.Collections.Hashtable[]] Compare()
     {
-        return @(
+        $this.PropertiesNotInDesiredState = @(
             @{
                 Property      = 'MyResourceProperty2'
                 ExpectedValue = 'MyNewValue1'
                 ActualValue   = 'MyValue1'
             }
         )
+
+        return $this.PropertiesNotInDesiredState
     }
 
     [void] Modify([System.Collections.Hashtable] $properties)
     {
         $this.mockModifyProperties = $properties
-    }
-
-    [System.Boolean] Test()
-    {
-        $this.PropertiesNotInDesiredState = $this.Compare()
-        return $false
     }
 }
 
@@ -1707,7 +1703,7 @@ class MyMockResource : ResourceBase
 
     [System.Collections.Hashtable[]] Compare()
     {
-        return @(
+        $this.PropertiesNotInDesiredState = @(
             @{
                 Property      = 'MyResourceProperty2'
                 ExpectedValue = 'MyNewValue1'
@@ -1719,17 +1715,13 @@ class MyMockResource : ResourceBase
                 ActualValue   = 'MyValue2'
             }
         )
+
+        return $this.PropertiesNotInDesiredState
     }
 
     [void] Modify([System.Collections.Hashtable] $properties)
     {
         $this.mockModifyProperties = $properties
-    }
-
-    [System.Boolean] Test()
-    {
-        $this.PropertiesNotInDesiredState = $this.Compare()
-        return $false
     }
 }
 
