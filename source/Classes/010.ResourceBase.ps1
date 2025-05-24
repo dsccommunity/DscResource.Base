@@ -211,7 +211,6 @@ class ResourceBase
         # Get the current state, all properties except Read properties .
         $currentState = $this.Get() | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional')
 
-        # Return the properties that are not in desired state, these are set in Get().
         return $this.Compare($currentState, @())
     }
 
