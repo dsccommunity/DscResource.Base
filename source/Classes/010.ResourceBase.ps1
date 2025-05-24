@@ -190,7 +190,7 @@ class ResourceBase
         #>
         if ($this.FeatureNoCompare)
         {
-            $this.Get()
+            $null = $this.Get()
         }
         else
         {
