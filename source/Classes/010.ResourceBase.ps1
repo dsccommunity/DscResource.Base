@@ -19,8 +19,14 @@ class ResourceBase
     # Property for derived class to set properties that should not be enforced.
     hidden [System.String[]] $ExcludeDscProperties = @()
 
+    # Property for holding the properties that are not in desired state.
+    hidden [System.Collections.Hashtable[]] $PropertiesNotInDesiredState = @()
+
     # Property for derived class to enable Enums to be used as optional properties. The usable Enum values should start at value 1.
     hidden [System.Boolean] $FeatureOptionalEnums = $false
+
+    # Property for derived class to not use Compare() method.
+    hidden [System.Boolean] $FeatureNoCompare = $false
 
     # Default constructor
     ResourceBase()
@@ -117,7 +123,7 @@ class ResourceBase
             Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
-        $propertiesNotInDesiredState = $this.Compare($getCurrentStateResult, @())
+        $this.PropertiesNotInDesiredState = $this.Compare($getCurrentStateResult, @())
 
         <#
             Return the correct values for Reasons property if the derived DSC resource
@@ -126,7 +132,7 @@ class ResourceBase
         if (($this | Test-DscProperty -Name 'Reasons') -and -not $getCurrentStateResult.ContainsKey('Reasons'))
         {
             # Always return an empty array if all properties are in desired state.
-            $dscResourceObject.Reasons = $propertiesNotInDesiredState |
+            $dscResourceObject.Reasons = $this.PropertiesNotInDesiredState |
                 Resolve-Reason -ResourceName $this.GetType().Name |
                 ConvertFrom-Reason
         }
@@ -142,31 +148,38 @@ class ResourceBase
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
+        # Use new logic
+        if ($this.FeatureNoCompare)
+        {
+            if ($this.Test())
+            {
+                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+                return
+            }
+        }
+        else # Use old logic
+        {
+            $null = $this.Compare()
+
+            if (-not $this.PropertiesNotInDesiredState)
+            {
+                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+                return
+            }
+        }
+
+        $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
+
+        $propertiesToModify.Keys |
+            ForEach-Object -Process {
+                Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
+            }
+
         <#
-            Returns all enforced properties not in desires state, or $null if
-            all enforced properties are in desired state.
+            Call the Modify() method with the properties that should be enforced
+            and are not in desired state.
         #>
-        $propertiesNotInDesiredState = $this.Compare()
-
-        if ($propertiesNotInDesiredState)
-        {
-            $propertiesToModify = $propertiesNotInDesiredState | ConvertFrom-CompareResult
-
-            $propertiesToModify.Keys |
-                ForEach-Object -Process {
-                    Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
-                }
-
-            <#
-                Call the Modify() method with the properties that should be enforced
-                and are not in desired state.
-            #>
-            $this.Modify($propertiesToModify)
-        }
-        else
-        {
-            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-        }
+        $this.Modify($propertiesToModify)
     }
 
     [System.Boolean] Test()
@@ -181,9 +194,16 @@ class ResourceBase
             all enforced properties are in desired state.
             Will call Get().
         #>
-        $propertiesNotInDesiredState = $this.Compare()
+        if ($this.FeatureNoCompare)
+        {
+            $null = $this.Get()
+        }
+        else
+        {
+            $null = $this.Compare()
+        }
 
-        if ($propertiesNotInDesiredState)
+        if ($this.PropertiesNotInDesiredState)
         {
             Write-Verbose -Message $this.localizedData.NotInDesiredState
             return $false

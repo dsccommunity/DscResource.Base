@@ -1117,11 +1117,15 @@ class MyMockResource : ResourceBase
     [System.Collections.Hashtable[]] Compare()
     {
         # Could just return any non-null object, but mocking a real result.
-        return @{
-            Property      = 'MyResourceProperty2'
-            ExpectedValue = '1'
-            ActualValue   = '2'
-        }
+        $this.PropertiesNotInDesiredState = @(
+            @{
+                Property      = 'MyResourceProperty2'
+                ExpectedValue = '1'
+                ActualValue   = '2'
+            }
+        )
+
+        return $this.PropertiesNotInDesiredState
     }
 }
 
@@ -1631,13 +1635,15 @@ class MyMockResource : ResourceBase
 
     [System.Collections.Hashtable[]] Compare()
     {
-        return @(
+        $this.PropertiesNotInDesiredState = @(
             @{
                 Property      = 'MyResourceProperty2'
                 ExpectedValue = 'MyNewValue1'
                 ActualValue   = 'MyValue1'
             }
         )
+
+        return $this.PropertiesNotInDesiredState
     }
 
     [void] Modify([System.Collections.Hashtable] $properties)
@@ -1697,7 +1703,7 @@ class MyMockResource : ResourceBase
 
     [System.Collections.Hashtable[]] Compare()
     {
-        return @(
+        $this.PropertiesNotInDesiredState = @(
             @{
                 Property      = 'MyResourceProperty2'
                 ExpectedValue = 'MyNewValue1'
@@ -1709,6 +1715,8 @@ class MyMockResource : ResourceBase
                 ActualValue   = 'MyValue2'
             }
         )
+
+        return $this.PropertiesNotInDesiredState
     }
 
     [void] Modify([System.Collections.Hashtable] $properties)
