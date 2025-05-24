@@ -42,7 +42,7 @@ class ResourceBase
         if (-not [System.String]::IsNullOrEmpty($BasePath))
         {
             <#
-                Passing the base directory of the module that contain the
+                Passing the base directory of the module that contains the
                 derived class.
             #>
             $getLocalizedDataRecursiveParameters.BaseDirectory = $BasePath
@@ -74,7 +74,7 @@ class ResourceBase
         # Set values returned from the derived class' GetCurrentState().
         foreach ($propertyName in $this.PSObject.Properties.Name)
         {
-            if ($propertyName -in @($getCurrentStateResult.Keys))
+            if ($propertyName -in @($getCurrentStateResult.Keys) -and $null -ne $getCurrentStateResult.$propertyName)
             {
                 $dscResourceObject.$propertyName = $getCurrentStateResult.$propertyName
             }
@@ -114,7 +114,7 @@ class ResourceBase
         }
 
         <#
-            Returns all enforced properties not in desires state, or $null if
+            Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
         $propertiesNotInDesiredState = $this.Compare($getCurrentStateResult, @())
@@ -137,14 +137,10 @@ class ResourceBase
 
     [void] Set()
     {
-        $this.Normalize()
-
         # Get all key properties.
         $keyProperty = $this | Get-DscProperty -Attribute 'Key'
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
-
-        $this.Assert()
 
         <#
             Returns all enforced properties not in desires state, or $null if
@@ -163,7 +159,7 @@ class ResourceBase
 
             <#
                 Call the Modify() method with the properties that should be enforced
-                and was not in desired state.
+                and are not in desired state.
             #>
             $this.Modify($propertiesToModify)
         }
@@ -175,38 +171,26 @@ class ResourceBase
 
     [System.Boolean] Test()
     {
-        $this.Normalize()
-
         # Get all key properties.
         $keyProperty = $this | Get-DscProperty -Attribute 'Key'
 
         Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        $this.Assert()
-
-        $isInDesiredState = $true
-
         <#
-            Returns all enforced properties not in desires state, or $null if
+            Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
+            Will call Get().
         #>
         $propertiesNotInDesiredState = $this.Compare()
 
         if ($propertiesNotInDesiredState)
         {
-            $isInDesiredState = $false
-        }
-
-        if ($isInDesiredState)
-        {
-            Write-Verbose -Message $this.localizedData.InDesiredState
-        }
-        else
-        {
             Write-Verbose -Message $this.localizedData.NotInDesiredState
+            return $false
         }
 
-        return $isInDesiredState
+        Write-Verbose -Message $this.localizedData.InDesiredState
+        return $true
     }
 
     <#
@@ -246,7 +230,7 @@ class ResourceBase
         }
 
         <#
-            Returns all enforced properties not in desires state, or $null if
+            Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
         return (Compare-DscParameterState @CompareDscParameterState)
@@ -289,7 +273,7 @@ class ResourceBase
 
     <#
         This method can be overridden if resource specific property asserts are
-        needed. The parameter properties will contain the properties that was
+        needed. The parameter properties will contain the properties that are
         assigned a value.
     #>
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidEmptyNamedBlocks', '')]
@@ -299,7 +283,7 @@ class ResourceBase
 
     <#
         This method can be overridden if resource specific property normalization
-        is needed. The parameter properties will contain the properties that was
+        is needed. The parameter properties will contain the properties that are
         assigned a value.
     #>
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidEmptyNamedBlocks', '')]
