@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `Get-DscProperty` when the property `FeatureOptionalEnums` is set to
     `$true`.
   - Remove calls to `Assert()` and `Normalize()` in `Test()` and `Set()` fixes [#35](https://github.com/dsccommunity/DscResource.Base/issues/35).
+  - Cache properties not in desired state.
+  - Make `Set()` call `Test()` and `Test()` call `Get()/Compare()`.
 
 ### Fixed
 
