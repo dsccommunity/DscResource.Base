@@ -148,10 +148,24 @@ class ResourceBase
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        if ($this.Test())
+        # Use new logic
+        if ($this.FeatureNoCompare)
         {
-            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-            return
+            if ($this.Test())
+            {
+                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+                return
+            }
+        }
+        else # Use old logic
+        {
+            $null = $this.Compare()
+
+            if (-not $this.PropertiesNotInDesiredState)
+            {
+                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+                return
+            }
         }
 
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
