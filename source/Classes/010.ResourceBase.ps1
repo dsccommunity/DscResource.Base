@@ -96,6 +96,9 @@ class ResourceBase
                 # Add the key value to the instance to be returned.
                 $dscResourceObject.$propertyName = $this.$propertyName
 
+                # Add the key value to the current state result to allow Compare() to return correctly.
+                $getCurrentStateResult.$propertyName = $this.$propertyName
+
                 $keyPropertyAddedToCurrentState = $true
             }
         }
