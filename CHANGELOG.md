@@ -5,6 +5,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `ResourceBase`
+  - Cache properties not in desired state.
+  - Make `Set()` call `Test()` and `Test()` call `Get()`.
+
+### Removed
+
+- `ResourceBase`
+  - Remove `Compare()` method as not used.
+  - Removed feature flags and alternate behavior.
+
 ## [1.4.0] - 2025-05-24
 
 ### Removed
