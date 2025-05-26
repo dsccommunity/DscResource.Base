@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `azure-pipelines.yml`
   - Remove `windows-2019` images fixes [#43](https://github.com/dsccommunity/DscResource.Base/issues/43)
   - Move individual tasks to `windows-latest`.
+- `ResourceBase`
+  - Cache properties not in desired state.
+  - Make `Set()` call `Test()` and `Test()` call `Get()`.
+
+### Removed
+
+- `ResourceBase`
+  - Remove `Compare()` method as not used.
+  - Removed feature flags and alternate behavior.
 
 ## [1.4.0] - 2025-05-24
 
@@ -32,8 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `Get-DscProperty` when the property `FeatureOptionalEnums` is set to
     `$true`.
   - Remove calls to `Assert()` and `Normalize()` in `Test()` and `Set()` fixes [#35](https://github.com/dsccommunity/DscResource.Base/issues/35).
-  - Cache properties not in desired state.
-  - Make `Set()` call `Test()` and `Test()` call `Get()/Compare()`.
 
 ### Fixed
 
