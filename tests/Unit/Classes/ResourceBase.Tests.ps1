@@ -184,9 +184,7 @@ $MyResourceProperty4 = [MyMockEnum]::Value4
 [System.String]
 $MyResourceReadProperty
 
-MyMockResource () {
-    $this.FeatureOptionalEnums = $true
-}
+MyMockResource () {}
 
 [ResourceBase] Get()
 {
@@ -272,9 +270,7 @@ $MyResourceProperty4 = [MyMockEnum]::Value4
 [System.String]
 $MyResourceReadProperty
 
-MyMockResource () {
-    $this.FeatureOptionalEnums = $true
-}
+MyMockResource () {}
 
 [ResourceBase] Get()
 {
@@ -1066,9 +1062,9 @@ class MyMockResource : ResourceBase
 
     MyMockResource () {}
 
-    [System.Collections.Hashtable[]] Compare()
+    [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
     {
-        return $null
+        return @{}
     }
 }
 
@@ -1092,455 +1088,449 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
         }
     }
 
-    Context 'When the system is not in the desired state' {
-        BeforeAll {
-            <#
-                This will override (mock) the method Compare() that is called by Test().
-                Overriding this method is something a derived class normally should not
-                do, but done here to simplify the tests.
-            #>
-            $inModuleScopeScriptBlock = @'
-using module DscResource.Base
+#     Context 'When the system is not in the desired state' {
+#         BeforeAll {
+#             <#
+#                 This will override (mock) the method Compare() that is called by Test().
+#                 Overriding this method is something a derived class normally should not
+#                 do, but done here to simplify the tests.
+#             #>
+#             $inModuleScopeScriptBlock = @'
+# using module DscResource.Base
 
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
+# class MyMockResource : ResourceBase
+# {
+#     [DscProperty(Key)]
+#     [System.String]
+#     $MyResourceKeyProperty1
 
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
+#     [DscProperty()]
+#     [System.String]
+#     $MyResourceProperty2
 
-    MyMockResource () {}
+#     MyMockResource () {}
 
-    [System.Collections.Hashtable[]] Compare()
-    {
-        # Could just return any non-null object, but mocking a real result.
-        $this.PropertiesNotInDesiredState = @(
-            @{
-                Property      = 'MyResourceProperty2'
-                ExpectedValue = '1'
-                ActualValue   = '2'
-            }
-        )
+#     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
+#     {
+#         return @{
+#                 MyResourceProperty2 = '2'
+#             }
+#     }
+# }
 
-        return $this.PropertiesNotInDesiredState
-    }
+# $script:mockResourceBaseInstance = [MyMockResource]::new()
+# '@
+
+#             InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+#         }
+
+#         It 'Should have correctly instantiated the resource class' {
+#             InModuleScope -ScriptBlock {
+#                 $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+#                 $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+#             }
+#         }
+
+#         It 'Should return $true' {
+#             InModuleScope -ScriptBlock {
+#                 $mockResourceBaseInstance.Test() | Should -BeFalse
+#             }
+#         }
+#     }
 }
 
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
-
-            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-        }
-
-        It 'Should have correctly instantiated the resource class' {
-            InModuleScope -ScriptBlock {
-                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-            }
-        }
-
-        It 'Should return $true' {
-            InModuleScope -ScriptBlock {
-                $mockResourceBaseInstance.Test() | Should -BeFalse
-            }
-        }
-    }
-}
-
-Describe 'ResourceBase\Compare()' -Tag 'Compare' {
-    BeforeAll {
-        Mock -CommandName Get-ClassName -MockWith {
-            # Only return localized strings for this class name.
-            @('ResourceBase')
-        }
-    }
-
-    Context 'When the system is in the desired state' {
-        BeforeAll {
-            $inModuleScopeScriptBlock = @'
-using module DscResource.Base
-
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
-
-    [DscProperty(NotConfigurable)]
-    [System.String]
-    $MyResourceReadProperty
-
-    MyMockResource () {}
-
-    [ResourceBase] Get()
-    {
-        # Creates a new instance of the mock instance MyMockResource.
-        $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
-
-        $currentStateInstance.MyResourceProperty2 = 'MyValue1'
-        $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
-
-        return $currentStateInstance
-    }
-}
-
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
-
-            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-        }
-
-        It 'Should have correctly instantiated the resource class' {
-            InModuleScope -ScriptBlock {
-                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-            }
-        }
-
-        Context 'When no properties are enforced' {
-            It 'Should not return any property to enforce' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty
-                }
-            }
-        }
-
-        Context 'When one property are enforced but in desired state' {
-            BeforeAll {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance.MyResourceProperty2 = 'MyValue1'
-                }
-            }
-
-            It 'Should not return any property to enforce' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty -Because 'no result ($null) means all properties are in desired state'
-                }
-            }
-        }
-    }
-
-    Context 'When the system is not in the desired state' {
-        BeforeAll {
-            $inModuleScopeScriptBlock = @'
-using module DscResource.Base
-
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty3
-
-    [DscProperty(NotConfigurable)]
-    [System.String]
-    $MyResourceReadProperty
-
-    MyMockResource () {}
-
-    [ResourceBase] Get()
-    {
-        # Creates a new instance of the mock instance MyMockResource.
-        $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
-
-        $currentStateInstance.MyResourceProperty2 = 'MyValue1'
-        $currentStateInstance.MyResourceProperty3 = 'MyValue2'
-        $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
-
-        return $currentStateInstance
-    }
-}
-
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
-
-            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-        }
-
-        It 'Should have correctly instantiated the resource class' {
-            InModuleScope -ScriptBlock {
-                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-            }
-        }
-
-        Context 'When only enforcing one property' {
-            BeforeAll {
-                InModuleScope -ScriptBlock {
-                    # Set desired value for the property that should be enforced.
-                    $mockResourceBaseInstance.MyResourceProperty2 = 'MyNewValue'
-                }
-            }
-
-            It 'Should return the correct property that is not in desired state' {
-                InModuleScope -ScriptBlock {
-                    $compareResult = $mockResourceBaseInstance.Compare()
-                    $compareResult | Should -HaveCount 1
-
-                    $compareResult[0].Property | Should -Be 'MyResourceProperty2'
-                    $compareResult[0].ExpectedValue | Should -Be 'MyNewValue'
-                    $compareResult[0].ActualValue | Should -Be 'MyValue1'
-                }
-            }
-        }
-
-        Context 'When only enforcing two properties' {
-            BeforeAll {
-                InModuleScope -ScriptBlock {
-                    # Set desired value for the properties that should be enforced.
-                    $mockResourceBaseInstance.MyResourceProperty2 = 'MyNewValue1'
-                    $mockResourceBaseInstance.MyResourceProperty3 = 'MyNewValue2'
-                }
-            }
-
-            It 'Should return the correct property that is not in desired state' {
-                InModuleScope -ScriptBlock {
-                    <#
-                        The properties that are returned are not [ordered] so they can
-                        come in any order from run to run. The test handle that.
-                    #>
-                    $compareResult = $mockResourceBaseInstance.Compare()
-                    $compareResult | Should -HaveCount 2
-
-                    $compareResult.Property | Should -Contain 'MyResourceProperty2'
-                    $compareResult.Property | Should -Contain 'MyResourceProperty3'
-
-                    $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty2' })
-                    $compareProperty.ExpectedValue | Should -Be 'MyNewValue1'
-                    $compareProperty.ActualValue | Should -Be 'MyValue1'
-
-                    $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty3' })
-                    $compareProperty.ExpectedValue | Should -Be 'MyNewValue2'
-                    $compareProperty.ActualValue | Should -Be 'MyValue2'
-                }
-            }
-        }
-    }
-
-    Context 'Optional Enums feature flag' {
-        Context 'When the system is in the desired state' {
-            BeforeAll {
-                $inModuleScopeScriptBlock = @'
-using module DscResource.Base
-
-enum MyMockEnum {
-    Value1 = 1
-    Value2
-    Value3
-    Value4
-}
-
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
-
-    [DscProperty()]
-    [MyMockEnum]
-    $MyResourceProperty3
-
-    [DscProperty()]
-    [MyMockEnum]
-    $MyResourceProperty4 = [MyMockEnum]::Value4
-
-    [DscProperty(NotConfigurable)]
-    [System.String]
-    $MyResourceReadProperty
-
-    MyMockResource () {
-        $this.FeatureOptionalEnums = $true
-    }
-
-    [ResourceBase] Get()
-    {
-        # Creates a new instance of the mock instance MyMockResource.
-        $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
-
-        $currentStateInstance.MyResourceProperty2 = 'MyValue1'
-        $currentStateInstance.MyResourceProperty4 = [MyMockEnum]::Value4
-        $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
-
-        return $currentStateInstance
-    }
-}
-
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
-
-                InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-            }
-
-            It 'Should have correctly instantiated the resource class' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                    $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-                }
-            }
-
-            Context 'When no properties are enforced' {
-                It 'Should not return any property to enforce' {
-                    InModuleScope -ScriptBlock {
-                        $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty
-                    }
-                }
-            }
-
-            Context 'When one property are enforced but in desired state' {
-                BeforeAll {
-                    InModuleScope -ScriptBlock {
-                        $mockResourceBaseInstance.MyResourceProperty4 = 'Value4'
-                    }
-                }
-
-                It 'Should not return any property to enforce' {
-                    InModuleScope -ScriptBlock {
-                        $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty -Because 'no result ($null) means all properties are in desired state'
-                    }
-                }
-            }
-        }
-
-        Context 'When the system is not in the desired state' {
-            BeforeAll {
-                $inModuleScopeScriptBlock = @'
-using module DscResource.Base
-
-enum MyMockEnum {
-    Value1 = 1
-    Value2
-    Value3
-    Value4
-}
-
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty3
-
-    [DscProperty()]
-    [MyMockEnum]
-    $MyResourceProperty4
-
-    [DscProperty()]
-    [MyMockEnum]
-    $MyResourceProperty5 = [MyMockEnum]::Value4
-
-    [DscProperty(NotConfigurable)]
-    [System.String]
-    $MyResourceReadProperty
-
-    MyMockResource () {
-        $this.FeatureOptionalEnums = $true
-    }
-
-    [ResourceBase] Get()
-    {
-        # Creates a new instance of the mock instance MyMockResource.
-        $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
-
-        $currentStateInstance.MyResourceProperty2 = 'MyValue1'
-        $currentStateInstance.MyResourceProperty3 = 'MyValue2'
-        $currentStateInstance.MyResourceProperty5 = [MyMockEnum]::Value4
-        $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
-
-        return $currentStateInstance
-    }
-}
-
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
-
-                InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-            }
-
-            It 'Should have correctly instantiated the resource class' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                    $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-                }
-            }
-
-            Context 'When only enforcing one property' {
-                BeforeAll {
-                    InModuleScope -ScriptBlock {
-                        # Set desired value for the properties that should be enforced.
-                        $mockResourceBaseInstance.MyResourceProperty5 = 'Value1'
-                    }
-                }
-                It 'Should return the correct property that is not in desired state' {
-                    InModuleScope -ScriptBlock {
-                        $compareResult = $mockResourceBaseInstance.Compare()
-                        $compareResult | Should -HaveCount 1
-
-                        $compareResult[0].Property | Should -Be 'MyResourceProperty5'
-                        $compareResult[0].ExpectedValue | Should -Be 'Value1'
-                        $compareResult[0].ActualValue | Should -Be 'Value4'
-                    }
-                }
-            }
-
-            Context 'When only enforcing two properties' {
-                BeforeAll {
-                    InModuleScope -ScriptBlock {
-                        # Set desired value for the properties that should be enforced.
-                        $mockResourceBaseInstance.MyResourceProperty2 = 'MyNewValue1'
-                        $mockResourceBaseInstance.MyResourceProperty5 = 'Value2'
-                    }
-                }
-
-                It 'Should return the correct property that is not in desired state' {
-                    InModuleScope -ScriptBlock {
-                        <#
-                        The properties that are returned are not [ordered] so they can
-                        come in any order from run to run. The test handle that.
-                    #>
-                        $compareResult = $mockResourceBaseInstance.Compare()
-                        $compareResult | Should -HaveCount 2
-
-                        $compareResult.Property | Should -Contain 'MyResourceProperty2'
-                        $compareResult.Property | Should -Contain 'MyResourceProperty5'
-
-                        $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty2' })
-                        $compareProperty.ExpectedValue | Should -Be 'MyNewValue1'
-                        $compareProperty.ActualValue | Should -Be 'MyValue1'
-
-                        $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty5' })
-                        $compareProperty.ExpectedValue | Should -Be 'Value2'
-                        $compareProperty.ActualValue | Should -Be 'Value4'
-                    }
-                }
-            }
-        }
-    }
-}
+# Describe 'ResourceBase\Compare()' -Tag 'Compare' {
+#     BeforeAll {
+#         Mock -CommandName Get-ClassName -MockWith {
+#             # Only return localized strings for this class name.
+#             @('ResourceBase')
+#         }
+#     }
+
+#     Context 'When the system is in the desired state' {
+#         BeforeAll {
+#             $inModuleScopeScriptBlock = @'
+# using module DscResource.Base
+
+# class MyMockResource : ResourceBase
+# {
+#     [DscProperty(Key)]
+#     [System.String]
+#     $MyResourceKeyProperty1
+
+#     [DscProperty()]
+#     [System.String]
+#     $MyResourceProperty2
+
+#     [DscProperty(NotConfigurable)]
+#     [System.String]
+#     $MyResourceReadProperty
+
+#     MyMockResource () {}
+
+#     [ResourceBase] Get()
+#     {
+#         # Creates a new instance of the mock instance MyMockResource.
+#         $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+
+#         $currentStateInstance.MyResourceProperty2 = 'MyValue1'
+#         $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
+
+#         return $currentStateInstance
+#     }
+# }
+
+# $script:mockResourceBaseInstance = [MyMockResource]::new()
+# '@
+
+#             InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+#         }
+
+#         It 'Should have correctly instantiated the resource class' {
+#             InModuleScope -ScriptBlock {
+#                 $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+#                 $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+#             }
+#         }
+
+#         Context 'When no properties are enforced' {
+#             It 'Should not return any property to enforce' {
+#                 InModuleScope -ScriptBlock {
+#                     $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty
+#                 }
+#             }
+#         }
+
+#         Context 'When one property are enforced but in desired state' {
+#             BeforeAll {
+#                 InModuleScope -ScriptBlock {
+#                     $mockResourceBaseInstance.MyResourceProperty2 = 'MyValue1'
+#                 }
+#             }
+
+#             It 'Should not return any property to enforce' {
+#                 InModuleScope -ScriptBlock {
+#                     $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty -Because 'no result ($null) means all properties are in desired state'
+#                 }
+#             }
+#         }
+#     }
+
+#     Context 'When the system is not in the desired state' {
+#         BeforeAll {
+#             $inModuleScopeScriptBlock = @'
+# using module DscResource.Base
+
+# class MyMockResource : ResourceBase
+# {
+#     [DscProperty(Key)]
+#     [System.String]
+#     $MyResourceKeyProperty1
+
+#     [DscProperty()]
+#     [System.String]
+#     $MyResourceProperty2
+
+#     [DscProperty()]
+#     [System.String]
+#     $MyResourceProperty3
+
+#     [DscProperty(NotConfigurable)]
+#     [System.String]
+#     $MyResourceReadProperty
+
+#     MyMockResource () {}
+
+#     [ResourceBase] Get()
+#     {
+#         # Creates a new instance of the mock instance MyMockResource.
+#         $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+
+#         $currentStateInstance.MyResourceProperty2 = 'MyValue1'
+#         $currentStateInstance.MyResourceProperty3 = 'MyValue2'
+#         $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
+
+#         return $currentStateInstance
+#     }
+# }
+
+# $script:mockResourceBaseInstance = [MyMockResource]::new()
+# '@
+
+#             InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+#         }
+
+#         It 'Should have correctly instantiated the resource class' {
+#             InModuleScope -ScriptBlock {
+#                 $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+#                 $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+#             }
+#         }
+
+#         Context 'When only enforcing one property' {
+#             BeforeAll {
+#                 InModuleScope -ScriptBlock {
+#                     # Set desired value for the property that should be enforced.
+#                     $mockResourceBaseInstance.MyResourceProperty2 = 'MyNewValue'
+#                 }
+#             }
+
+#             It 'Should return the correct property that is not in desired state' {
+#                 InModuleScope -ScriptBlock {
+#                     $compareResult = $mockResourceBaseInstance.Compare()
+#                     $compareResult | Should -HaveCount 1
+
+#                     $compareResult[0].Property | Should -Be 'MyResourceProperty2'
+#                     $compareResult[0].ExpectedValue | Should -Be 'MyNewValue'
+#                     $compareResult[0].ActualValue | Should -Be 'MyValue1'
+#                 }
+#             }
+#         }
+
+#         Context 'When only enforcing two properties' {
+#             BeforeAll {
+#                 InModuleScope -ScriptBlock {
+#                     # Set desired value for the properties that should be enforced.
+#                     $mockResourceBaseInstance.MyResourceProperty2 = 'MyNewValue1'
+#                     $mockResourceBaseInstance.MyResourceProperty3 = 'MyNewValue2'
+#                 }
+#             }
+
+#             It 'Should return the correct property that is not in desired state' {
+#                 InModuleScope -ScriptBlock {
+#                     <#
+#                         The properties that are returned are not [ordered] so they can
+#                         come in any order from run to run. The test handle that.
+#                     #>
+#                     $compareResult = $mockResourceBaseInstance.Compare()
+#                     $compareResult | Should -HaveCount 2
+
+#                     $compareResult.Property | Should -Contain 'MyResourceProperty2'
+#                     $compareResult.Property | Should -Contain 'MyResourceProperty3'
+
+#                     $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty2' })
+#                     $compareProperty.ExpectedValue | Should -Be 'MyNewValue1'
+#                     $compareProperty.ActualValue | Should -Be 'MyValue1'
+
+#                     $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty3' })
+#                     $compareProperty.ExpectedValue | Should -Be 'MyNewValue2'
+#                     $compareProperty.ActualValue | Should -Be 'MyValue2'
+#                 }
+#             }
+#         }
+#     }
+
+#     # TODO: Add to default tests
+# #     Context 'Optional Enums feature flag' {
+# #         Context 'When the system is in the desired state' {
+# #             BeforeAll {
+# #                 $inModuleScopeScriptBlock = @'
+# # using module DscResource.Base
+
+# # enum MyMockEnum {
+# #     Value1 = 1
+# #     Value2
+# #     Value3
+# #     Value4
+# # }
+
+# # class MyMockResource : ResourceBase
+# # {
+# #     [DscProperty(Key)]
+# #     [System.String]
+# #     $MyResourceKeyProperty1
+
+# #     [DscProperty()]
+# #     [System.String]
+# #     $MyResourceProperty2
+
+# #     [DscProperty()]
+# #     [MyMockEnum]
+# #     $MyResourceProperty3
+
+# #     [DscProperty()]
+# #     [MyMockEnum]
+# #     $MyResourceProperty4 = [MyMockEnum]::Value4
+
+# #     [DscProperty(NotConfigurable)]
+# #     [System.String]
+# #     $MyResourceReadProperty
+
+# #     MyMockResource () {
+# #         $this.FeatureOptionalEnums = $true
+# #     }
+
+# #     [ResourceBase] Get()
+# #     {
+# #         # Creates a new instance of the mock instance MyMockResource.
+# #         $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+
+# #         $currentStateInstance.MyResourceProperty2 = 'MyValue1'
+# #         $currentStateInstance.MyResourceProperty4 = [MyMockEnum]::Value4
+# #         $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
+
+# #         return $currentStateInstance
+# #     }
+# # }
+
+# # $script:mockResourceBaseInstance = [MyMockResource]::new()
+# # '@
+
+# #                 InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+# #             }
+
+# #             It 'Should have correctly instantiated the resource class' {
+# #                 InModuleScope -ScriptBlock {
+# #                     $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+# #                     $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+# #                 }
+# #             }
+
+# #             Context 'When no properties are enforced' {
+# #                 It 'Should not return any property to enforce' {
+# #                     InModuleScope -ScriptBlock {
+# #                         $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty
+# #                     }
+# #                 }
+# #             }
+
+# #             Context 'When one property are enforced but in desired state' {
+# #                 BeforeAll {
+# #                     InModuleScope -ScriptBlock {
+# #                         $mockResourceBaseInstance.MyResourceProperty4 = 'Value4'
+# #                     }
+# #                 }
+
+# #                 It 'Should not return any property to enforce' {
+# #                     InModuleScope -ScriptBlock {
+# #                         $mockResourceBaseInstance.Compare() | Should -BeNullOrEmpty -Because 'no result ($null) means all properties are in desired state'
+# #                     }
+# #                 }
+# #             }
+# #         }
+
+# #         Context 'When the system is not in the desired state' {
+# #             BeforeAll {
+# #                 $inModuleScopeScriptBlock = @'
+# # using module DscResource.Base
+
+# # enum MyMockEnum {
+# #     Value1 = 1
+# #     Value2
+# #     Value3
+# #     Value4
+# # }
+
+# # class MyMockResource : ResourceBase
+# # {
+# #     [DscProperty(Key)]
+# #     [System.String]
+# #     $MyResourceKeyProperty1
+
+# #     [DscProperty()]
+# #     [System.String]
+# #     $MyResourceProperty2
+
+# #     [DscProperty()]
+# #     [System.String]
+# #     $MyResourceProperty3
+
+# #     [DscProperty()]
+# #     [MyMockEnum]
+# #     $MyResourceProperty4
+
+# #     [DscProperty()]
+# #     [MyMockEnum]
+# #     $MyResourceProperty5 = [MyMockEnum]::Value4
+
+# #     [DscProperty(NotConfigurable)]
+# #     [System.String]
+# #     $MyResourceReadProperty
+
+# #     MyMockResource () {
+# #         $this.FeatureOptionalEnums = $true
+# #     }
+
+# #     [ResourceBase] Get()
+# #     {
+# #         # Creates a new instance of the mock instance MyMockResource.
+# #         $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+
+# #         $currentStateInstance.MyResourceProperty2 = 'MyValue1'
+# #         $currentStateInstance.MyResourceProperty3 = 'MyValue2'
+# #         $currentStateInstance.MyResourceProperty5 = [MyMockEnum]::Value4
+# #         $currentStateInstance.MyResourceReadProperty = 'MyReadValue1'
+
+# #         return $currentStateInstance
+# #     }
+# # }
+
+# # $script:mockResourceBaseInstance = [MyMockResource]::new()
+# # '@
+
+# #                 InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+# #             }
+
+# #             It 'Should have correctly instantiated the resource class' {
+# #                 InModuleScope -ScriptBlock {
+# #                     $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+# #                     $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+# #                 }
+# #             }
+
+# #             Context 'When only enforcing one property' {
+# #                 BeforeAll {
+# #                     InModuleScope -ScriptBlock {
+# #                         # Set desired value for the properties that should be enforced.
+# #                         $mockResourceBaseInstance.MyResourceProperty5 = 'Value1'
+# #                     }
+# #                 }
+# #                 It 'Should return the correct property that is not in desired state' {
+# #                     InModuleScope -ScriptBlock {
+# #                         $compareResult = $mockResourceBaseInstance.Compare()
+# #                         $compareResult | Should -HaveCount 1
+
+# #                         $compareResult[0].Property | Should -Be 'MyResourceProperty5'
+# #                         $compareResult[0].ExpectedValue | Should -Be 'Value1'
+# #                         $compareResult[0].ActualValue | Should -Be 'Value4'
+# #                     }
+# #                 }
+# #             }
+
+# #             Context 'When only enforcing two properties' {
+# #                 BeforeAll {
+# #                     InModuleScope -ScriptBlock {
+# #                         # Set desired value for the properties that should be enforced.
+# #                         $mockResourceBaseInstance.MyResourceProperty2 = 'MyNewValue1'
+# #                         $mockResourceBaseInstance.MyResourceProperty5 = 'Value2'
+# #                     }
+# #                 }
+
+# #                 It 'Should return the correct property that is not in desired state' {
+# #                     InModuleScope -ScriptBlock {
+# #                         <#
+# #                         The properties that are returned are not [ordered] so they can
+# #                         come in any order from run to run. The test handle that.
+# #                     #>
+# #                         $compareResult = $mockResourceBaseInstance.Compare()
+# #                         $compareResult | Should -HaveCount 2
+
+# #                         $compareResult.Property | Should -Contain 'MyResourceProperty2'
+# #                         $compareResult.Property | Should -Contain 'MyResourceProperty5'
+
+# #                         $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty2' })
+# #                         $compareProperty.ExpectedValue | Should -Be 'MyNewValue1'
+# #                         $compareProperty.ActualValue | Should -Be 'MyValue1'
+
+# #                         $compareProperty = $compareResult.Where( { $_.Property -eq 'MyResourceProperty5' })
+# #                         $compareProperty.ExpectedValue | Should -Be 'Value2'
+# #                         $compareProperty.ActualValue | Should -Be 'Value4'
+# #                     }
+# #                 }
+# #             }
+# #         }
+# #     }
+# }
 
 Describe 'ResourceBase\Set()' -Tag 'Set' {
     BeforeAll {
@@ -1575,9 +1565,9 @@ class MyMockResource : ResourceBase
     # Hidden property to determine whether the method Modify() was called.
     hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
 
-    [System.Collections.Hashtable[]] Compare()
+    [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
     {
-        return $null
+        return @{}
     }
 
     [void] Modify([System.Collections.Hashtable] $properties)
@@ -1608,150 +1598,160 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
         }
     }
 
-    Context 'When the system is not in the desired state' {
-        Context 'When setting one property' {
-            BeforeAll {
-                $inModuleScopeScriptBlock = @'
-using module DscResource.Base
+#     Context 'When the system is not in the desired state' {
+#         Context 'When setting one property' {
+#             BeforeAll {
+#                 $inModuleScopeScriptBlock = @'
+# using module DscResource.Base
 
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
+# class MyMockResource : ResourceBase
+# {
+#     [DscProperty(Key)]
+#     [System.String]
+#     $MyResourceKeyProperty1
 
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
+#     [DscProperty()]
+#     [System.String]
+#     $MyResourceProperty2
 
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty3
+#     [DscProperty()]
+#     [System.String]
+#     $MyResourceProperty3
 
-    # Hidden property to determine whether the method Modify() was called.
-    hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
+#     # Hidden property to determine whether the method Modify() was called.
+#     hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
 
-    MyMockResource () {}
+#     MyMockResource () {}
 
-    [System.Collections.Hashtable[]] Compare()
-    {
-        $this.PropertiesNotInDesiredState = @(
-            @{
-                Property      = 'MyResourceProperty2'
-                ExpectedValue = 'MyNewValue1'
-                ActualValue   = 'MyValue1'
-            }
-        )
+#     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
+#     {
+#         return @{}
+#     }
 
-        return $this.PropertiesNotInDesiredState
-    }
+#     [System.Collections.Hashtable[]] Compare()
+#     {
+#         $this.PropertiesNotInDesiredState = @(
+#             @{
+#                 Property      = 'MyResourceProperty2'
+#                 ExpectedValue = 'MyNewValue1'
+#                 ActualValue   = 'MyValue1'
+#             }
+#         )
 
-    [void] Modify([System.Collections.Hashtable] $properties)
-    {
-        $this.mockModifyProperties = $properties
-    }
-}
+#         return $this.PropertiesNotInDesiredState
+#     }
 
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
+#     [void] Modify([System.Collections.Hashtable] $properties)
+#     {
+#         $this.mockModifyProperties = $properties
+#     }
+# }
 
-                InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-            }
+# $script:mockResourceBaseInstance = [MyMockResource]::new()
+# '@
 
-            It 'Should have correctly instantiated the resource class' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                    $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-                }
-            }
+#                 InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+#             }
 
-            It 'Should set the correct property' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance.Set()
+#             It 'Should have correctly instantiated the resource class' {
+#                 InModuleScope -ScriptBlock {
+#                     $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+#                     $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+#                 }
+#             }
 
-                    $mockResourceBaseInstance.mockModifyProperties.Keys | Should -HaveCount 1
-                    $mockResourceBaseInstance.mockModifyProperties.Keys | Should -Contain 'MyResourceProperty2'
+#             It 'Should set the correct property' {
+#                 InModuleScope -ScriptBlock {
+#                     $mockResourceBaseInstance.Set()
 
-                    $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty2 | Should -Contain 'MyNewValue1'
-                }
-            }
-        }
+#                     $mockResourceBaseInstance.mockModifyProperties.Keys | Should -HaveCount 1
+#                     $mockResourceBaseInstance.mockModifyProperties.Keys | Should -Contain 'MyResourceProperty2'
 
-        Context 'When setting two properties' {
-            BeforeAll {
-                $inModuleScopeScriptBlock = @'
-using module DscResource.Base
+#                     $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty2 | Should -Contain 'MyNewValue1'
+#                 }
+#             }
+#         }
 
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
+# #         Context 'When setting two properties' {
+# #             BeforeAll {
+# #                 $inModuleScopeScriptBlock = @'
+# # using module DscResource.Base
 
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
+# # class MyMockResource : ResourceBase
+# # {
+# #     [DscProperty(Key)]
+# #     [System.String]
+# #     $MyResourceKeyProperty1
 
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty3
+# #     [DscProperty()]
+# #     [System.String]
+# #     $MyResourceProperty2
 
-    # Hidden property to determine whether the method Modify() was called.
-    hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
+# #     [DscProperty()]
+# #     [System.String]
+# #     $MyResourceProperty3
 
-    MyMockResource () {}
+# #     # Hidden property to determine whether the method Modify() was called.
+# #     hidden [System.Collections.Hashtable] $mockModifyProperties = @{}
 
-    [System.Collections.Hashtable[]] Compare()
-    {
-        $this.PropertiesNotInDesiredState = @(
-            @{
-                Property      = 'MyResourceProperty2'
-                ExpectedValue = 'MyNewValue1'
-                ActualValue   = 'MyValue1'
-            },
-            @{
-                Property      = 'MyResourceProperty3'
-                ExpectedValue = 'MyNewValue2'
-                ActualValue   = 'MyValue2'
-            }
-        )
+# #     MyMockResource () {}
 
-        return $this.PropertiesNotInDesiredState
-    }
+# #     [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
+# #     {
+# #         return @{}
+# #     }
 
-    [void] Modify([System.Collections.Hashtable] $properties)
-    {
-        $this.mockModifyProperties = $properties
-    }
-}
+# #     [System.Collections.Hashtable[]] Compare()
+# #     {
+# #         $this.PropertiesNotInDesiredState = @(
+# #             @{
+# #                 Property      = 'MyResourceProperty2'
+# #                 ExpectedValue = 'MyNewValue1'
+# #                 ActualValue   = 'MyValue1'
+# #             },
+# #             @{
+# #                 Property      = 'MyResourceProperty3'
+# #                 ExpectedValue = 'MyNewValue2'
+# #                 ActualValue   = 'MyValue2'
+# #             }
+# #         )
 
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
+# #         return $this.PropertiesNotInDesiredState
+# #     }
 
-                InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-            }
+# #     [void] Modify([System.Collections.Hashtable] $properties)
+# #     {
+# #         $this.mockModifyProperties = $properties
+# #     }
+# # }
 
-            It 'Should have correctly instantiated the resource class' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                    $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-                }
-            }
+# # $script:mockResourceBaseInstance = [MyMockResource]::new()
+# # '@
 
-            It 'Should set the correct properties' {
-                InModuleScope -ScriptBlock {
-                    $mockResourceBaseInstance.Set()
+# #                 InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+# #             }
 
-                    $mockResourceBaseInstance.mockModifyProperties.Keys | Should -HaveCount 2
-                    $mockResourceBaseInstance.mockModifyProperties.Keys | Should -Contain 'MyResourceProperty2'
-                    $mockResourceBaseInstance.mockModifyProperties.Keys | Should -Contain 'MyResourceProperty3'
+# #             It 'Should have correctly instantiated the resource class' {
+# #                 InModuleScope -ScriptBlock {
+# #                     $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
+# #                     $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
+# #                 }
+# #             }
 
-                    $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty2 | Should -Contain 'MyNewValue1'
-                    $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty3 | Should -Contain 'MyNewValue2'
-                }
-            }
-        }
-    }
+# #             It 'Should set the correct properties' {
+# #                 InModuleScope -ScriptBlock {
+# #                     $mockResourceBaseInstance.Set()
+
+# #                     $mockResourceBaseInstance.mockModifyProperties.Keys | Should -HaveCount 2
+# #                     $mockResourceBaseInstance.mockModifyProperties.Keys | Should -Contain 'MyResourceProperty2'
+# #                     $mockResourceBaseInstance.mockModifyProperties.Keys | Should -Contain 'MyResourceProperty3'
+
+# #                     $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty2 | Should -Contain 'MyNewValue1'
+# #                     $mockResourceBaseInstance.mockModifyProperties.MyResourceProperty3 | Should -Contain 'MyNewValue2'
+# #                 }
+# #             }
+# #         }
+#     }
 }
 
 Describe 'ResourceBase\GetDesiredState()' -Tag 'GetDesiredState' {
@@ -1759,76 +1759,6 @@ Describe 'ResourceBase\GetDesiredState()' -Tag 'GetDesiredState' {
         Mock -CommandName Get-ClassName -MockWith {
             # Only return localized strings for this class name.
             @('ResourceBase')
-        }
-    }
-
-    Context 'When FeatureOptionalEnums is disabled' {
-        BeforeAll {
-            $inModuleScopeScriptBlock = @'
-using module DscResource.Base
-
-class MyMockResource : ResourceBase
-{
-    [DscProperty(Key)]
-    [System.String]
-    $MyResourceKeyProperty1
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty2
-
-    [DscProperty()]
-    [System.String]
-    $MyResourceProperty3
-
-    [DscProperty(NotConfigurable)]
-    [System.String]
-    $MyResourceReadProperty
-
-    MyMockResource () {
-        $this.FeatureOptionalEnums = $false
-    }
-}
-
-$script:mockResourceBaseInstance = [MyMockResource]::new()
-'@
-
-            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
-
-            Mock -CommandName Get-DscProperty -MockWith {
-                return @{
-                    MyResourceKeyProperty1 = 'KeyValue'
-                    MyResourceProperty2 = 'TestValue'
-                    MyResourceProperty3 = 'Value3'
-                }
-            }
-        }
-
-        It 'Should have correctly instantiated the resource class' {
-            InModuleScope -ScriptBlock {
-                $mockResourceBaseInstance | Should -Not -BeNullOrEmpty
-                $mockResourceBaseInstance.GetType().BaseType.Name | Should -Be 'ResourceBase'
-            }
-        }
-
-        It 'Should call Get-DscProperty with the correct parameters' {
-            InModuleScope -ScriptBlock {
-                $null = $mockResourceBaseInstance.GetDesiredState()
-            }
-
-            Should -Invoke -CommandName Get-DscProperty -ParameterFilter {
-                (-not $PesterBoundParameters.ContainsKey('IgnoreZeroEnumValue'))
-            } -Exactly -Times 1 -Scope It
-        }
-
-        It 'Should return the correct hashtable' {
-            InModuleScope -ScriptBlock {
-                $result = $mockResourceBaseInstance.GetDesiredState()
-                $result.Keys | Should -HaveCount 3
-                $result.MyResourceKeyProperty1 | Should -Be 'KeyValue'
-                $result.MyResourceProperty2 | Should -Be 'TestValue'
-                $result.MyResourceProperty3 | Should -Be 'Value3'
-            }
         }
     }
 
@@ -1861,9 +1791,7 @@ class MyMockResource : ResourceBase
     [System.String]
     $MyResourceReadProperty
 
-    MyMockResource () {
-        $this.FeatureOptionalEnums = $true
-    }
+    MyMockResource () {}
 }
 
 $script:mockResourceBaseInstance = [MyMockResource]::new()

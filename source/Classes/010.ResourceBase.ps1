@@ -22,12 +22,6 @@ class ResourceBase
     # Property for holding the properties that are not in desired state.
     hidden [System.Collections.Hashtable[]] $PropertiesNotInDesiredState = @()
 
-    # Property for derived class to enable Enums to be used as optional properties. The usable Enum values should start at value 1.
-    hidden [System.Boolean] $FeatureOptionalEnums = $false
-
-    # Property for derived class to not use Compare() method.
-    hidden [System.Boolean] $FeatureNoCompare = $false
-
     # Default constructor
     ResourceBase()
     {
@@ -95,8 +89,6 @@ class ResourceBase
             {
                 # Add the key value to the instance to be returned.
                 $dscResourceObject.$propertyName = $this.$propertyName
-
-                # Add the key value to the current state result to allow Compare() to return correctly.
                 $getCurrentStateResult.$propertyName = $this.$propertyName
 
                 $keyPropertyAddedToCurrentState = $true
@@ -151,24 +143,10 @@ class ResourceBase
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        # Use new logic
-        if ($this.FeatureNoCompare)
+        if ($this.Test())
         {
-            if ($this.Test())
-            {
-                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-                return
-            }
-        }
-        else # Use old logic
-        {
-            $null = $this.Compare()
-
-            if (-not $this.PropertiesNotInDesiredState)
-            {
-                Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-                return
-            }
+            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+            return
         }
 
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
@@ -197,19 +175,7 @@ class ResourceBase
 
         Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
 
-        <#
-            Returns all enforced properties not in desired state, or $null if
-            all enforced properties are in desired state.
-            Will call Get().
-        #>
-        if ($this.FeatureNoCompare)
-        {
-            $null = $this.Get()
-        }
-        else
-        {
-            $null = $this.Compare()
-        }
+        $null = $this.Get()
 
         if ($this.PropertiesNotInDesiredState)
         {
@@ -219,21 +185,6 @@ class ResourceBase
 
         Write-Verbose -Message $this.localizedData.InDesiredState
         return $true
-    }
-
-    <#
-        Returns a hashtable containing all properties that should be enforced and
-        are not in desired state, or $null if all enforced properties are in
-        desired state.
-
-        This method should normally not be overridden.
-    #>
-    hidden [System.Collections.Hashtable[]] Compare()
-    {
-        # Get the current state, all properties except Read properties .
-        $currentState = $this.Get() | Get-DscProperty -Attribute @('Key', 'Mandatory', 'Optional')
-
-        return $this.Compare($currentState, @())
     }
 
     <#
@@ -280,17 +231,13 @@ class ResourceBase
     hidden [System.Collections.Hashtable] GetDesiredState()
     {
         $getDscPropertyParameters = @{
-            Attribute = @(
+            Attribute           = @(
                 'Key'
                 'Mandatory'
                 'Optional'
             )
-            HasValue  = $true
-        }
-
-        if ($this.FeatureOptionalEnums)
-        {
-            $getDscPropertyParameters.IgnoreZeroEnumValue = $true
+            HasValue            = $true
+            IgnoreZeroEnumValue = $true
         }
 
         # Get the properties that has a non-null value and is not of type Read.
