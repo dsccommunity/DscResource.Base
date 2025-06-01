@@ -5,6 +5,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `azure-pipelines.yml`
+  - Remove `windows-2019` images fixes [#43](https://github.com/dsccommunity/DscResource.Base/issues/43)
+  - Move individual tasks to `windows-latest`.
+
 ## [1.4.0] - 2025-05-24
 
 ### Removed
