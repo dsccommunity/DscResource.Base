@@ -59,8 +59,8 @@ stages:
       - job: Test_HQRM
         displayName: 'HQRM'
         pool:
-          vmImage: 'windows-2022'
-        timeoutInMinutes: 0
+          vmImage: 'windows-latest'
+        timeoutInMinutes: '0'
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Build Artifact'
@@ -103,8 +103,8 @@ stages:
       - job: Test_Unit
         displayName: 'Unit'
         pool:
-          vmImage: 'windows-2019'
-        timeoutInMinutes: 0
+          vmImage: 'windows-latest'
+        timeoutInMinutes: '0'
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Build Artifact'
@@ -132,27 +132,26 @@ stages:
             inputs:
               targetPath: '$(buildFolderName)/$(testResultFolderName)/'
               artifactName: $(testArtifactName)
-              parallel: true
 
       - job: Test_Integration
         displayName: 'Integration'
         strategy:
           matrix:
-            POWERSHELL_WIN2019:
-              JOB_VMIMAGE: 'windows-2019'
-              JOB_PWSH: true
             POWERSHELL_WIN2022:
               JOB_VMIMAGE: 'windows-2022'
               JOB_PWSH: true
-            WINDOWSPOWERSHELL_WIN2019: # cSpell: disable-line
-              JOB_VMIMAGE: 'windows-2019'
-              JOB_PWSH: false
             WINDOWSPOWERSHELL_WIN2022: # cSpell: disable-line
               JOB_VMIMAGE: 'windows-2022'
               JOB_PWSH: false
+            POWERSHELL_WIN2025:
+              JOB_VMIMAGE: 'windows-2025'
+              JOB_PWSH: true
+            WINDOWSPOWERSHELL_WIN2025: # cSpell: disable-line
+              JOB_VMIMAGE: 'windows-2025'
+              JOB_PWSH: false
         pool:
           vmImage: $(JOB_VMIMAGE)
-        timeoutInMinutes: 0
+        timeoutInMinutes: '0'
         variables:
           # This sets environment variable $env:CI.
           CI: true
@@ -184,7 +183,7 @@ stages:
         condition: succeededOrFailed()
         pool:
           vmImage: 'ubuntu-latest'
-        timeoutInMinutes: 0
+        timeoutInMinutes: '0'
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Build Artifact'
