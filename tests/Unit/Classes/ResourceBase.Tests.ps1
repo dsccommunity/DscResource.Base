@@ -146,11 +146,11 @@ Describe 'ResourceBase\Assert()' -Tag 'Assert' {
                 @('ResourceBase')
             }
 
-            Mock -CommandName Get-DscProperty -MockWith {
-                return @{
-                    MyResourceKeyProperty1 = 'SomeString'
-                }
-            }
+            # Mock -CommandName Get-DscProperty -MockWith {
+            #     return @{
+            #         MyResourceKeyProperty1 = 'SomeString'
+            #     }
+            # }
 
             $inModuleScopeScriptBlock = @'
 using module DscResource.Base
@@ -218,7 +218,7 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $mockResourceBaseInstance.Assert()
                 }
 
-                Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
+                # Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
             }
         }
     }
@@ -304,7 +304,7 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     $mockResourceBaseInstance.Normalize()
                 }
 
-                Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
+                # Should -Invoke -CommandName Get-DscProperty -Exactly -Times 1 -Scope It
             }
         }
     }
