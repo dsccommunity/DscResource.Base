@@ -22,15 +22,27 @@ class ResourceBase
     # Property for holding the properties that are not in desired state.
     hidden [System.Collections.Hashtable[]] $PropertiesNotInDesiredState = @()
 
+    # Property for holding the desired state.
+    hidden [System.Collections.Hashtable] $CachedDesiredState = @{}
+
+    # Property for holding the key properties.
+    hidden [System.Collections.Hashtable] $CachedKeyProperties = @{}
+
     # Default constructor
     ResourceBase()
     {
         $this.ImportLocalization($null)
+
+        # Get all key properties.
+        $this.GetKeyProperties()
     }
 
     ResourceBase([System.String] $BasePath)
     {
         $this.ImportLocalization($BasePath)
+
+        # Get all key properties.
+        $this.GetKeyProperties()
     }
 
     hidden [void] ImportLocalization([System.String] $BasePath)
@@ -58,16 +70,15 @@ class ResourceBase
 
     [ResourceBase] Get()
     {
+        $this.CachedDesiredState = $this.GetDesiredState()
+
         $this.Normalize()
 
         $this.Assert()
 
-        # Get all key properties.
-        $keyProperty = $this | Get-DscProperty -Attribute 'Key'
+        Write-Verbose -Message ($this.localizedData.GetCurrentState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
 
-        Write-Verbose -Message ($this.localizedData.GetCurrentState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
-
-        $getCurrentStateResult = $this.GetCurrentState($keyProperty)
+        $getCurrentStateResult = $this.GetCurrentState($this.CachedKeyProperties)
 
         $dscResourceObject = [System.Activator]::CreateInstance($this.GetType())
 
@@ -83,7 +94,7 @@ class ResourceBase
         $keyPropertyAddedToCurrentState = $false
 
         # Set key property values unless it was returned from the derived class' GetCurrentState().
-        foreach ($propertyName in $keyProperty.Keys)
+        foreach ($propertyName in $this.CachedKeyProperties.Keys)
         {
             if ($propertyName -notin @($getCurrentStateResult.Keys))
             {
@@ -138,10 +149,7 @@ class ResourceBase
 
     [void] Set()
     {
-        # Get all key properties.
-        $keyProperty = $this | Get-DscProperty -Attribute 'Key'
-
-        Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
+        Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
 
         if ($this.Test())
         {
@@ -165,10 +173,7 @@ class ResourceBase
 
     [System.Boolean] Test()
     {
-        # Get all key properties.
-        $keyProperty = $this | Get-DscProperty -Attribute 'Key'
-
-        Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($keyProperty | ConvertTo-Json -Compress))
+        Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
 
         $null = $this.Get()
 
@@ -191,12 +196,10 @@ class ResourceBase
     #>
     hidden [System.Collections.Hashtable[]] Compare([System.Collections.Hashtable] $currentState, [System.String[]] $excludeProperties)
     {
-        $desiredState = $this.GetDesiredState()
-
         $CompareDscParameterState = @{
             CurrentValues     = $currentState
-            DesiredValues     = $desiredState
-            Properties        = $desiredState.Keys
+            DesiredValues     = $this.CachedDesiredState
+            Properties        = $this.CachedDesiredState.Keys
             ExcludeProperties = ($excludeProperties + $this.ExcludeDscProperties) | Select-Object -Unique
             IncludeValue      = $true
             # This is needed to sort complex types.
@@ -213,13 +216,13 @@ class ResourceBase
     # This method should normally not be overridden.
     hidden [void] Assert()
     {
-        $this.AssertProperties($this.GetDesiredState())
+        $this.AssertProperties($this.CachedDesiredState)
     }
 
     # This method should normally not be overridden.
     hidden [void] Normalize()
     {
-        $this.NormalizeProperties($this.GetDesiredState())
+        $this.NormalizeProperties($this.CachedDesiredState)
     }
 
     # This is a private method and should normally not be overridden.
@@ -239,6 +242,15 @@ class ResourceBase
         $desiredState = $this | Get-DscProperty @getDscPropertyParameters
 
         return $desiredState
+    }
+
+    # This is a private method and should normally not be overridden.
+    hidden [void] GetKeyProperties()
+    {
+        <#
+            Sets the key properties of the resource.
+        #>
+        $this.CachedKeyProperties = $this | Get-DscProperty -Attribute 'Key'
     }
 
     <#
