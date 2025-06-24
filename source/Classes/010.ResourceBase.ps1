@@ -151,21 +151,16 @@ class ResourceBase
 
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
 
-            $propertiesToModify.Keys |
-                ForEach-Object -Process {
-                    Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
-                }
+        $propertiesToModify.Keys |
+            ForEach-Object -Process {
+                Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
+            }
 
-            <#
-                Call the Modify() method with the properties that should be enforced
-                and are not in desired state.
-            #>
-            $this.Modify($propertiesToModify)
-        }
-        else
-        {
-            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
-        }
+        <#
+            Call the Modify() method with the properties that should be enforced
+            and are not in desired state.
+        #>
+        $this.Modify($propertiesToModify)
     }
 
     [System.Boolean] Test()
