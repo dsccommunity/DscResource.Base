@@ -23,26 +23,20 @@ class ResourceBase
     hidden [System.Collections.Hashtable[]] $PropertiesNotInDesiredState = @()
 
     # Property for holding the desired state.
-    hidden [System.Collections.Hashtable] $CachedDesiredState = @{}
+    hidden [System.Collections.Hashtable] $CachedDesiredState = $null
 
     # Property for holding the key properties.
-    hidden [System.Collections.Hashtable] $CachedKeyProperties = @{}
+    hidden [System.Collections.Hashtable] $CachedKeyProperties = $null
 
     # Default constructor
     ResourceBase()
     {
         $this.ImportLocalization($null)
-
-        # Get all key properties.
-        $this.GetKeyProperties()
     }
 
     ResourceBase([System.String] $BasePath)
     {
         $this.ImportLocalization($BasePath)
-
-        # Get all key properties.
-        $this.GetKeyProperties()
     }
 
     hidden [void] ImportLocalization([System.String] $BasePath)
@@ -70,6 +64,11 @@ class ResourceBase
 
     [ResourceBase] Get()
     {
+        if (-not $this.CachedKeyProperties)
+        {
+            $this.GetKeyProperties()
+        }
+
         $this.CachedDesiredState = $this.GetDesiredState()
 
         $this.Normalize()
@@ -149,6 +148,11 @@ class ResourceBase
 
     [void] Set()
     {
+        if (-not $this.CachedKeyProperties)
+        {
+            $this.GetKeyProperties()
+        }
+
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
 
         if ($this.Test())
@@ -173,6 +177,11 @@ class ResourceBase
 
     [System.Boolean] Test()
     {
+        if (-not $this.CachedKeyProperties)
+        {
+            $this.GetKeyProperties()
+        }
+
         Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
 
         $null = $this.Get()
