@@ -66,7 +66,7 @@ class ResourceBase
     {
         if (-not $this.CachedKeyProperties)
         {
-            $this.GetKeyProperties()
+            $this.SetCachedKeyProperties()
         }
 
         $this.CachedDesiredState = $this.GetDesiredState()
@@ -150,7 +150,7 @@ class ResourceBase
     {
         if (-not $this.CachedKeyProperties)
         {
-            $this.GetKeyProperties()
+            $this.SetCachedKeyProperties()
         }
 
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
@@ -179,7 +179,7 @@ class ResourceBase
     {
         if (-not $this.CachedKeyProperties)
         {
-            $this.GetKeyProperties()
+            $this.SetCachedKeyProperties()
         }
 
         Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name, ($this.CachedKeyProperties | ConvertTo-Json -Compress))
@@ -254,7 +254,7 @@ class ResourceBase
     }
 
     # This is a private method and should normally not be overridden.
-    hidden [void] GetKeyProperties()
+    hidden [void] SetCachedKeyProperties()
     {
         <#
             Sets the key properties of the resource.
