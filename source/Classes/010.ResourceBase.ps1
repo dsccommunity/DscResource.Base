@@ -153,6 +153,7 @@ class ResourceBase
             return
         }
 
+        # $this.PropertiesNotInDesiredState was set by the Get() method.
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
 
         $propertiesToModify.Keys |
@@ -173,6 +174,7 @@ class ResourceBase
 
         $null = $this.Get()
 
+        # $this.PropertiesNotInDesiredState was set by the Get() method.
         if ($this.PropertiesNotInDesiredState)
         {
             Write-Verbose -Message $this.localizedData.NotInDesiredState
@@ -189,9 +191,12 @@ class ResourceBase
         desired state.
 
         This method should normally not be overridden.
+
+        This method is only used by Get().
     #>
     hidden [System.Collections.Hashtable[]] Compare([System.Collections.Hashtable] $currentState, [System.String[]] $excludeProperties)
     {
+        # $this.CachedDesiredState was set by the Get() method.
         $CompareDscParameterState = @{
             CurrentValues     = $currentState
             DesiredValues     = $this.CachedDesiredState
