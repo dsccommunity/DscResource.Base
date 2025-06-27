@@ -147,7 +147,7 @@ class ResourceBase
     {
         Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name)
 
-        if ($this.Test())
+        if (([ResourceBase]$this).Test())
         {
             Write-Verbose -Message $this.localizedData.NoPropertiesToSet
             return
@@ -172,7 +172,7 @@ class ResourceBase
     {
         Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name)
 
-        $null = $this.Get()
+        $null = ([ResourceBase]$this).Get()
 
         # $this.PropertiesNotInDesiredState was set by the Get() method.
         if ($this.PropertiesNotInDesiredState)
