@@ -1355,7 +1355,7 @@ Describe 'ResourceBase\SetCachedKeyProperties()' -Tag 'SetCachedKeyProperties' {
         }
     }
 
-    Context 'When the cached key properties' {
+    Context 'When setting the cached key properties' {
         BeforeAll {
             $inModuleScopeScriptBlock = @'
 using module DscResource.Base
