@@ -6,8 +6,8 @@
 
 ConvertFrom-StringData @'
     GetCurrentState = Getting the current state for resource '{0}' using the key property '{1}'. (RB0001)
-    TestDesiredState = Determining the current state for resource '{0}' using the key property '{1}'. (RB0002)
-    SetDesiredState = Setting the desired state for resource '{0}' using the key property '{1}'. (RB0003)
+    TestDesiredState = Determining the current state for resource '{0}'. (RB0002)
+    SetDesiredState = Setting the desired state for resource '{0}'. (RB0003)
     NotInDesiredState = The current state is not the desired state. (RB0004)
     InDesiredState = The current state is the desired state. (RB0005)
     SetProperty = The property '{0}' will be set to '{1}'. (RB0006)
