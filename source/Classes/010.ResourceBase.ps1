@@ -154,6 +154,7 @@ class ResourceBase
         }
 
         # $this.PropertiesNotInDesiredState was set by the Get() method.
+        # The Get() method is called by Test().
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
 
         $propertiesToModify.Keys |
