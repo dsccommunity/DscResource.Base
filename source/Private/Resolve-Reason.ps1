@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        Returns a array of the type `[Reason]`.
+        Returns an array of the type `[Reason]`.
 
     .DESCRIPTION
         This command builds an array from the properties that is returned by the command
