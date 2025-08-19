@@ -43,12 +43,12 @@ function Get-ClassName
     begin
     {
         # Create a list of the inherited class names
-        $class = @()
+        $class = [System.Collections.Generic.List[System.String]]::new()
     }
 
     process
     {
-        $class += $InputObject.GetType().FullName
+        $class.Add($InputObject.GetType().FullName)
 
         if ($Recurse.IsPresent)
         {
@@ -56,7 +56,7 @@ function Get-ClassName
 
             while ($parentClass -ne [System.Object])
             {
-                $class += $parentClass.FullName
+                $class.Add($parentClass.FullName)
 
                 $parentClass = $parentClass.BaseType
             }

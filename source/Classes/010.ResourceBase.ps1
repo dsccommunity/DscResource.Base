@@ -157,10 +157,10 @@ class ResourceBase
         # The Get() method is called by Test().
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
 
-        $propertiesToModify.Keys |
-            ForEach-Object -Process {
-                Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
-            }
+        foreach ($property in $propertiesToModify.Keys)
+        {
+            Write-Verbose -Message ($this.localizedData.SetProperty -f $property, $propertiesToModify.$property)
+        }
 
         <#
             Call the Modify() method with the properties that should be enforced

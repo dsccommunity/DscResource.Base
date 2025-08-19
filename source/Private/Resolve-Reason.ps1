@@ -43,7 +43,7 @@ function Resolve-Reason
     begin
     {
         # Always return an empty array if there are no properties to add.
-        $reasons = [Reason[]] @()
+        $reasons = [System.Collections.Generic.List[Reason]]::new()
     }
 
     process
@@ -99,15 +99,17 @@ function Resolve-Reason
                 $propertyExpectedValueJson = $propertyExpectedValueJson -replace '\\\\', '\'
             }
 
-            $reasons += [Reason] @{
-                Code   = '{0}:{0}:{1}' -f $ResourceName, $currentProperty.Property
-                # Convert the object to JSON to handle complex types.
-                Phrase = 'The property {0} should be {1}, but was {2}' -f @(
-                    $currentProperty.Property,
-                    $propertyExpectedValueJson,
-                    $propertyActualValueJson
-                )
-            }
+            $reasons.Add(
+                [Reason] @{
+                    Code   = ('{0}:{0}:{1}' -f $ResourceName, $currentProperty.Property)
+                    # Convert the object to JSON to handle complex types.
+                    Phrase = ('The property {0} should be {1}, but was {2}' -f
+                        $currentProperty.Property,
+                        $propertyExpectedValueJson,
+                        $propertyActualValueJson
+                    )
+                }
+            )
         }
     }
 
