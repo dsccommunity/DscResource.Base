@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ResourceBase`
   - Cache properties not in desired state.
   - Make `Set()` call `Test()` and `Test()` call `Get()`.
+- Remove use of array addition and `ForEach-Object`.
 
 ### Removed
 
