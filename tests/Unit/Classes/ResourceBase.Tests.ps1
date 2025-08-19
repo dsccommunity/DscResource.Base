@@ -1244,6 +1244,14 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
                     Add-Member -MemberType ScriptMethod -Name 'Modify' -Value {
                         $script:modifyMethodCallCount++
                     } -Force
+
+                $mockResourceBaseInstance.PropertiesNotInDesiredState = @(
+                    @{
+                        Property      = 'MyResourceProperty2'
+                        ExpectedValue = 'MyNewValue1'
+                        ActualValue   = 'MyValue1'
+                    }
+                )
             }
 
             Mock -CommandName ConvertFrom-CompareResult -MockWith {
