@@ -60,7 +60,7 @@ function Resolve-Reason
                 $propertyExpectedValue = $currentProperty.ExpectedValue
             }
 
-            if ($property.ActualValue -is [System.Enum])
+            if ($currentProperty.ActualValue -is [System.Enum])
             {
                 # Return the string representation of the value so that conversion to json is correct.
                 $propertyActualValue = $currentProperty.ActualValue.ToString()
