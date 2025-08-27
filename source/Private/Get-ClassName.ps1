@@ -49,7 +49,7 @@ function Get-ClassName
     process
     {
         $inputObjectType = $InputObject.GetType()
-        
+
         $class.Add($inputObjectType.FullName)
 
         if ($Recurse.IsPresent)
