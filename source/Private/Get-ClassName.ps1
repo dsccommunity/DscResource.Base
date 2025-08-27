@@ -48,11 +48,13 @@ function Get-ClassName
 
     process
     {
-        $class.Add($InputObject.GetType().FullName)
+        $inputObjectType = $InputObject.GetType()
+        
+        $class.Add($inputObjectType.FullName)
 
         if ($Recurse.IsPresent)
         {
-            $parentClass = $InputObject.GetType().BaseType
+            $parentClass = $inputObjectType.BaseType
 
             while ($parentClass -ne [System.Object])
             {
