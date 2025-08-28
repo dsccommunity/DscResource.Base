@@ -115,6 +115,6 @@ function Resolve-Reason
 
     end
     {
-        return , [Reason[]] $reasons
+        return [Reason[]] $reasons.ToArray()
     }
 }
