@@ -67,6 +67,6 @@ function Get-ClassName
 
     end
     {
-        return , [System.String[]] $class
+        return , [System.String[]] $class.ToArray()
     }
 }

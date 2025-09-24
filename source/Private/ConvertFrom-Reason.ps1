@@ -55,6 +55,6 @@ function ConvertFrom-Reason
 
     end
     {
-        return , [System.Collections.Hashtable[]] $reasonsAsHashtable
+        return , [System.Collections.Hashtable[]] $reasonsAsHashtable.ToArray()
     }
 }
