@@ -78,10 +78,12 @@ class ResourceBase
 
         $dscResourceObject = [System.Activator]::CreateInstance($this.GetType())
 
+        $currentStateResultKeys = @($getCurrentStateResult.Keys)
+
         # Set values returned from the derived class' GetCurrentState().
         foreach ($propertyName in $this.PSObject.Properties.Name)
         {
-            if ($propertyName -in @($getCurrentStateResult.Keys) -and $null -ne $getCurrentStateResult.$propertyName)
+            if ($propertyName -in $currentStateResultKeys -and $null -ne $getCurrentStateResult.$propertyName)
             {
                 $dscResourceObject.$propertyName = $getCurrentStateResult.$propertyName
             }
@@ -92,7 +94,7 @@ class ResourceBase
         # Set key property values unless it was returned from the derived class' GetCurrentState().
         foreach ($propertyName in $this.CachedKeyProperties.Keys)
         {
-            if ($propertyName -notin @($getCurrentStateResult.Keys))
+            if ($propertyName -notin $currentStateResultKeys)
             {
                 # Add the key value to the instance to be returned.
                 $dscResourceObject.$propertyName = $this.$propertyName
@@ -157,10 +159,10 @@ class ResourceBase
         # The Get() method is called by Test().
         $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
 
-        $propertiesToModify.Keys |
-            ForEach-Object -Process {
-                Write-Verbose -Message ($this.localizedData.SetProperty -f $_, $propertiesToModify.$_)
-            }
+        foreach ($property in $propertiesToModify.Keys)
+        {
+            Write-Verbose -Message ($this.localizedData.SetProperty -f $property, $propertiesToModify.$property)
+        }
 
         <#
             Call the Modify() method with the properties that should be enforced
@@ -202,7 +204,7 @@ class ResourceBase
             CurrentValues     = $currentState
             DesiredValues     = $this.CachedDesiredState
             Properties        = $this.CachedDesiredState.Keys
-            ExcludeProperties = ($excludeProperties + $this.ExcludeDscProperties) | Select-Object -Unique
+            ExcludeProperties = @(($excludeProperties + $this.ExcludeDscProperties) | Sort-Object -Unique)
             IncludeValue      = $true
             # This is needed to sort complex types.
             SortArrayValues   = $true

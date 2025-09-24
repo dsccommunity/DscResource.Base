@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        Returns a array of the type `[Reason]`.
+        Returns an array of the type `[Reason]`.
 
     .DESCRIPTION
         This command builds an array from the properties that is returned by the command
@@ -43,7 +43,7 @@ function Resolve-Reason
     begin
     {
         # Always return an empty array if there are no properties to add.
-        $reasons = [Reason[]] @()
+        $reasons = [System.Collections.Generic.List[Reason]]::new()
     }
 
     process
@@ -60,7 +60,7 @@ function Resolve-Reason
                 $propertyExpectedValue = $currentProperty.ExpectedValue
             }
 
-            if ($property.ActualValue -is [System.Enum])
+            if ($currentProperty.ActualValue -is [System.Enum])
             {
                 # Return the string representation of the value so that conversion to json is correct.
                 $propertyActualValue = $currentProperty.ActualValue.ToString()
@@ -99,20 +99,22 @@ function Resolve-Reason
                 $propertyExpectedValueJson = $propertyExpectedValueJson -replace '\\\\', '\'
             }
 
-            $reasons += [Reason] @{
-                Code   = '{0}:{0}:{1}' -f $ResourceName, $currentProperty.Property
-                # Convert the object to JSON to handle complex types.
-                Phrase = 'The property {0} should be {1}, but was {2}' -f @(
-                    $currentProperty.Property,
-                    $propertyExpectedValueJson,
-                    $propertyActualValueJson
-                )
-            }
+            $reasons.Add(
+                [Reason] @{
+                    Code   = ('{0}:{0}:{1}' -f $ResourceName, $currentProperty.Property)
+                    # Convert the object to JSON to handle complex types.
+                    Phrase = ('The property {0} should be {1}, but was {2}' -f
+                        $currentProperty.Property,
+                        $propertyExpectedValueJson,
+                        $propertyActualValueJson
+                    )
+                }
+            )
         }
     }
 
     end
     {
-        return $reasons
+        return [Reason[]] $reasons.ToArray()
     }
 }

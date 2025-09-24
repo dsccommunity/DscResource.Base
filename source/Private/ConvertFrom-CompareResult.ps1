@@ -35,8 +35,9 @@ function ConvertFrom-CompareResult
 
     process
     {
-        $CompareResult | ForEach-Object -Process {
-            $returnHashtable[$_.Property] = $_.ExpectedValue
+        foreach ($r in $CompareResult)
+        {
+            $returnHashtable[$r.Property] = $r.ExpectedValue
         }
     }
 

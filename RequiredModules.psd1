@@ -8,7 +8,12 @@
     }
 
     # Build dependencies needed for using the module
-    'DscResource.Common'           = 'latest'
+    'DscResource.Common'           = @{
+        Version    = 'latest'
+        Parameters = @{
+            AllowPrerelease = $true
+        }
+    }
 
     # Build dependencies for the pipeline
     InvokeBuild                    = 'latest'
@@ -20,7 +25,12 @@
     Sampler                        = 'latest'
     'Sampler.GitHubTasks'          = 'latest'
     MarkdownLinkCheck              = 'latest'
-    'DscResource.Test'             = 'latest'
+    'DscResource.Test'             = @{
+        Version    = 'latest'
+        Parameters = @{
+            AllowPrerelease = $true
+        }
+    }
 
     'DscResource.DocGenerator'     = 'latest'
     PlatyPS                        = 'latest'

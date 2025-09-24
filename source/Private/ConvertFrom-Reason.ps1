@@ -37,22 +37,24 @@ function ConvertFrom-Reason
     begin
     {
         # Always return an empty array if there are nothing to convert.
-        $reasonsAsHashtable = [System.Collections.Hashtable[]] @()
+        $reasonsAsHashtable = [System.Collections.Generic.List[System.Collections.Hashtable]]::new()
     }
 
     process
     {
         foreach ($currentReason in $Reason)
         {
-            $reasonsAsHashtable += [System.Collections.Hashtable] @{
-                Code   = $currentReason.Code
-                Phrase = $currentReason.Phrase
-            }
+            $reasonsAsHashtable.Add(
+                [System.Collections.Hashtable] @{
+                    Code   = $currentReason.Code
+                    Phrase = $currentReason.Phrase
+                }
+            )
         }
     }
 
     end
     {
-        return , [System.Collections.Hashtable[]] $reasonsAsHashtable
+        return , [System.Collections.Hashtable[]] $reasonsAsHashtable.ToArray()
     }
 }
