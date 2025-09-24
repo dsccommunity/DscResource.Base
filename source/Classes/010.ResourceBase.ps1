@@ -204,7 +204,7 @@ class ResourceBase
             CurrentValues     = $currentState
             DesiredValues     = $this.CachedDesiredState
             Properties        = $this.CachedDesiredState.Keys
-            ExcludeProperties = ($excludeProperties + $this.ExcludeDscProperties) | Select-Object -Unique
+            ExcludeProperties = @(($excludeProperties + $this.ExcludeDscProperties) | Sort-Object -Unique)
             IncludeValue      = $true
             # This is needed to sort complex types.
             SortArrayValues   = $true
