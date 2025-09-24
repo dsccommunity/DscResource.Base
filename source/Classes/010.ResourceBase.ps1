@@ -78,10 +78,12 @@ class ResourceBase
 
         $dscResourceObject = [System.Activator]::CreateInstance($this.GetType())
 
+        $currentStateResultKeys = @($getCurrentStateResult.Keys)
+
         # Set values returned from the derived class' GetCurrentState().
         foreach ($propertyName in $this.PSObject.Properties.Name)
         {
-            if ($propertyName -in @($getCurrentStateResult.Keys) -and $null -ne $getCurrentStateResult.$propertyName)
+            if ($propertyName -in $currentStateResultKeys -and $null -ne $getCurrentStateResult.$propertyName)
             {
                 $dscResourceObject.$propertyName = $getCurrentStateResult.$propertyName
             }
@@ -92,7 +94,7 @@ class ResourceBase
         # Set key property values unless it was returned from the derived class' GetCurrentState().
         foreach ($propertyName in $this.CachedKeyProperties.Keys)
         {
-            if ($propertyName -notin @($getCurrentStateResult.Keys))
+            if ($propertyName -notin $currentStateResultKeys)
             {
                 # Add the key value to the instance to be returned.
                 $dscResourceObject.$propertyName = $this.$propertyName
