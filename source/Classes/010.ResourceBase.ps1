@@ -147,11 +147,11 @@ class ResourceBase
 
     [void] Set()
     {
-        Write-Verbose -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name)
+        Write-Debug -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name)
 
         if ($this.Test())
         {
-            Write-Verbose -Message $this.localizedData.NoPropertiesToSet
+            Write-Debug -Message $this.localizedData.NoPropertiesToSet
             return
         }
 
@@ -173,7 +173,7 @@ class ResourceBase
 
     [System.Boolean] Test()
     {
-        Write-Verbose -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name)
+        Write-Debug -Message ($this.localizedData.TestDesiredState -f $this.GetType().Name)
 
         $null = $this.Get()
 
