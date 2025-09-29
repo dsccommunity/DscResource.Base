@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cache properties not in desired state.
   - Make `Set()` call `Test()` and `Test()` call `Get()`.
   - Remove use of array addition and `ForEach-Object`.
+  - Output only relevant state output at Verbose. Fixes [#45](https://github.com/dsccommunity/DscResource.Base/issues/45).
 
 ### Removed
 
