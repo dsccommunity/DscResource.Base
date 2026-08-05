@@ -9,4 +9,5 @@ ConvertFrom-StringData @'
     DebugImportingLocalizationData = Importing localization data from '{0}' (DRB0001)
     ThrowClassIsNotPartOfModule = The class is not part of module DscResource.Base and no BaseDirectory was passed. Please provide BaseDirectory. (DRB0002)
     DebugShowAllLocalizationData = Localization data: '{0}' (DRB0003)
+    NewDscResultTuple_CountMismatch = The number of types ({0}) does not match the number of values ({1}). (DRB0004)
 '@

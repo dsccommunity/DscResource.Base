@@ -14,4 +14,8 @@ ConvertFrom-StringData @'
     NoPropertiesToSet = All properties are in desired state. (RB0007)
     ModifyMethodNotImplemented = An override for the method Modify() is not implemented in the resource. (RB0008)
     GetCurrentStateMethodNotImplemented = An override for the method GetCurrentState() is not implemented in the resource. (RB0009)
+    WhatIfDesiredState = Returning the predicted state for resource '{0}' (what-if mode). The system will not be modified. (RB0010)
+    DeleteInstanceNotSupported = The resource '{0}' does not support the delete operation because it does not have an 'Ensure' property. Override the method DeleteInstance() in the resource to support delete. (RB0011)
+    ExportInstancesMethodNotImplemented = An override for the method ExportInstances() is not implemented in the resource '{0}'. (RB0012)
+    DeleteInstance = Deleting the instance of the resource '{0}'. (RB0013)
 '@

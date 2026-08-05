@@ -1435,3 +1435,830 @@ $script:mockResourceBaseInstance = [MyMockResource]::new()
         }
     }
 }
+
+Describe 'ResourceBase\GetTestResult()' -Tag 'GetTestResult' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+
+        $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    MyMockResource () {}
+
+    static [System.Tuple[System.Boolean, MyMockResource, System.String[]]] Test([MyMockResource] $instance)
+    {
+        return $instance.GetTestResult()
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+$script:mockResourceBaseType = [MyMockResource]
+'@
+    }
+
+    Context 'When the system is in the desired state' {
+        BeforeAll {
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:getMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Get' -Value {
+                    $script:getMethodCallCount++
+
+                    $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+                    $currentStateInstance.MyResourceKeyProperty1 = 'MyValue1'
+                    $currentStateInstance.MyResourceProperty2 = 'MyValue2'
+
+                    return $currentStateInstance
+                } -Force
+            }
+        }
+
+        It 'Should return a tuple closed over the derived class type' {
+            InModuleScope -ScriptBlock {
+                $testResult = $mockResourceBaseInstance.GetTestResult()
+
+                $genericArguments = $testResult.GetType().GetGenericArguments()
+
+                $genericArguments[0].Name | Should -Be 'Boolean'
+                $genericArguments[1].Name | Should -Be 'MyMockResource'
+                $genericArguments[2].Name | Should -Be 'String[]'
+            }
+        }
+
+        It 'Should return the correct tuple values' {
+            InModuleScope -ScriptBlock {
+                $script:getMethodCallCount = 0
+
+                $testResult = $mockResourceBaseInstance.GetTestResult()
+
+                $testResult.Item1 | Should -BeTrue
+                $testResult.Item2.MyResourceProperty2 | Should -Be 'MyValue2'
+                $testResult.Item3 | Should -HaveCount 0
+
+                $script:getMethodCallCount | Should -Be 1
+            }
+        }
+
+        It 'Should return the tuple through the derived class static method Test()' {
+            InModuleScope -ScriptBlock {
+                $testResult = $mockResourceBaseType::Test($mockResourceBaseInstance)
+
+                $testResult.Item1 | Should -BeTrue
+                $testResult.Item2.GetType().Name | Should -Be 'MyMockResource'
+                $testResult.Item3 | Should -HaveCount 0
+            }
+        }
+    }
+
+    Context 'When the system is not in the desired state' {
+        BeforeAll {
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:getMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Get' -Value {
+                    $script:getMethodCallCount++
+
+                    $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+                    $currentStateInstance.MyResourceKeyProperty1 = 'MyValue1'
+                    $currentStateInstance.MyResourceProperty2 = 'MyValue2'
+
+                    return $currentStateInstance
+                } -Force
+
+                $mockResourceBaseInstance.PropertiesNotInDesiredState = @(
+                    @{
+                        Property      = 'MyResourceProperty2'
+                        ExpectedValue = 'MyNewValue2'
+                        ActualValue   = 'MyValue2'
+                    }
+                )
+            }
+        }
+
+        It 'Should return the correct tuple values' {
+            InModuleScope -ScriptBlock {
+                $testResult = $mockResourceBaseInstance.GetTestResult()
+
+                $testResult.Item1 | Should -BeFalse
+                $testResult.Item3 | Should -HaveCount 1
+                $testResult.Item3 | Should -Contain 'MyResourceProperty2'
+
+                $script:getMethodCallCount | Should -Be 1
+            }
+        }
+
+        It 'Should return the tuple through the derived class static method Test()' {
+            InModuleScope -ScriptBlock {
+                $testResult = $mockResourceBaseType::Test($mockResourceBaseInstance)
+
+                $testResult.Item1 | Should -BeFalse
+                $testResult.Item3 | Should -Contain 'MyResourceProperty2'
+            }
+        }
+    }
+}
+
+Describe 'ResourceBase\GetSetResult()' -Tag 'GetSetResult' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+
+        $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    MyMockResource () {}
+
+    static [System.Tuple[MyMockResource, System.String[]]] Set([MyMockResource] $instance, [System.Boolean] $whatIf)
+    {
+        return $instance.GetSetResult($whatIf)
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+$script:mockResourceBaseType = [MyMockResource]
+'@
+    }
+
+    Context 'When the system is in the desired state' {
+        BeforeAll {
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:getMethodCallCount = 0
+                $script:modifyMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Get' -Value {
+                    $script:getMethodCallCount++
+
+                    $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+                    $currentStateInstance.MyResourceKeyProperty1 = 'MyValue1'
+                    $currentStateInstance.MyResourceProperty2 = 'MyValue2'
+
+                    return $currentStateInstance
+                } -Force -PassThru |
+                    Add-Member -MemberType ScriptMethod -Name 'Modify' -Value {
+                        $script:modifyMethodCallCount++
+                    } -Force
+            }
+        }
+
+        It 'Should not modify anything and return the current state with no changed properties' {
+            InModuleScope -ScriptBlock {
+                $setResult = $mockResourceBaseInstance.GetSetResult()
+
+                $setResult.Item1.MyResourceProperty2 | Should -Be 'MyValue2'
+                $setResult.Item2 | Should -HaveCount 0
+
+                $script:getMethodCallCount | Should -Be 1
+                $script:modifyMethodCallCount | Should -Be 0
+            }
+        }
+
+        It 'Should return a tuple closed over the derived class type' {
+            InModuleScope -ScriptBlock {
+                $setResult = $mockResourceBaseInstance.GetSetResult()
+
+                $genericArguments = $setResult.GetType().GetGenericArguments()
+
+                $genericArguments[0].Name | Should -Be 'MyMockResource'
+                $genericArguments[1].Name | Should -Be 'String[]'
+            }
+        }
+    }
+
+    Context 'When the system is not in the desired state' {
+        BeforeAll {
+            Mock -CommandName ConvertFrom-CompareResult -MockWith {
+                return @{
+                    MyResourceProperty2 = 'MyNewValue2'
+                }
+            }
+        }
+
+        BeforeEach {
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:getMethodCallCount = 0
+                $script:modifyMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Get' -Value {
+                    $script:getMethodCallCount++
+
+                    $currentStateInstance = [System.Activator]::CreateInstance($this.GetType())
+                    $currentStateInstance.MyResourceKeyProperty1 = 'MyValue1'
+                    $currentStateInstance.MyResourceProperty2 = 'MyValue2'
+
+                    return $currentStateInstance
+                } -Force -PassThru |
+                    Add-Member -MemberType ScriptMethod -Name 'Modify' -Value {
+                        $script:modifyMethodCallCount++
+                    } -Force
+
+                $mockResourceBaseInstance.PropertiesNotInDesiredState = @(
+                    @{
+                        Property      = 'MyResourceProperty2'
+                        ExpectedValue = 'MyNewValue2'
+                        ActualValue   = 'MyValue2'
+                    }
+                )
+            }
+        }
+
+        It 'Should modify the properties and return the state after the modification' {
+            InModuleScope -ScriptBlock {
+                $setResult = $mockResourceBaseInstance.GetSetResult($false)
+
+                $setResult.Item2 | Should -HaveCount 1
+                $setResult.Item2 | Should -Contain 'MyResourceProperty2'
+
+                $script:modifyMethodCallCount | Should -Be 1
+
+                # One call to get the current state and one call to get the state after the modification.
+                $script:getMethodCallCount | Should -Be 2
+            }
+        }
+
+        It 'Should not modify anything in what-if mode and return the predicted state' {
+            InModuleScope -ScriptBlock {
+                $setResult = $mockResourceBaseInstance.GetSetResult($true)
+
+                $setResult.Item1.MyResourceProperty2 | Should -Be 'MyNewValue2'
+                $setResult.Item1.MyResourceKeyProperty1 | Should -Be 'MyValue1'
+                $setResult.Item2 | Should -HaveCount 1
+                $setResult.Item2 | Should -Contain 'MyResourceProperty2'
+
+                $script:modifyMethodCallCount | Should -Be 0
+                $script:getMethodCallCount | Should -Be 1
+            }
+        }
+
+        It 'Should return the tuple through the derived class static method Set()' {
+            InModuleScope -ScriptBlock {
+                $setResult = $mockResourceBaseType::Set($mockResourceBaseInstance, $true)
+
+                $setResult.Item1.GetType().Name | Should -Be 'MyMockResource'
+                $setResult.Item2 | Should -Contain 'MyResourceProperty2'
+
+                $script:modifyMethodCallCount | Should -Be 0
+            }
+        }
+    }
+}
+
+Describe 'ResourceBase\GetPredictedState()' -Tag 'GetPredictedState' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+
+        $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    [DscProperty(NotConfigurable)]
+    [System.Collections.Hashtable[]]
+    $Reasons
+
+    MyMockResource () {}
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+        InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+        InModuleScope -ScriptBlock {
+            $mockResourceBaseInstance.PropertiesNotInDesiredState = @(
+                @{
+                    Property      = 'MyResourceProperty2'
+                    ExpectedValue = 'MyNewValue2'
+                    ActualValue   = 'MyValue2'
+                }
+            )
+
+            $script:mockCurrentStateInstance = [System.Activator]::CreateInstance($mockResourceBaseInstance.GetType())
+            $script:mockCurrentStateInstance.MyResourceKeyProperty1 = 'MyValue1'
+            $script:mockCurrentStateInstance.MyResourceProperty2 = 'MyValue2'
+            $script:mockCurrentStateInstance.Reasons = @(
+                @{
+                    Code   = 'MyMockResource:MyMockResource:MyResourceProperty2'
+                    Phrase = 'The property MyResourceProperty2 should be "MyNewValue2", but was "MyValue2"'
+                }
+            )
+        }
+    }
+
+    It 'Should return the current state with the expected values applied' {
+        InModuleScope -ScriptBlock {
+            $predictedState = $mockResourceBaseInstance.GetPredictedState($mockCurrentStateInstance)
+
+            $predictedState.GetType().Name | Should -Be 'MyMockResource'
+            $predictedState.MyResourceKeyProperty1 | Should -Be 'MyValue1'
+            $predictedState.MyResourceProperty2 | Should -Be 'MyNewValue2'
+        }
+    }
+
+    It 'Should return an empty Reasons property' {
+        InModuleScope -ScriptBlock {
+            $predictedState = $mockResourceBaseInstance.GetPredictedState($mockCurrentStateInstance)
+
+            $predictedState.Reasons | Should -HaveCount 0
+        }
+    }
+
+    It 'Should not modify the passed current state instance' {
+        InModuleScope -ScriptBlock {
+            $null = $mockResourceBaseInstance.GetPredictedState($mockCurrentStateInstance)
+
+            $mockCurrentStateInstance.MyResourceProperty2 | Should -Be 'MyValue2'
+        }
+    }
+}
+
+Describe 'ResourceBase\DeleteInstance()' -Tag 'DeleteInstance' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+    }
+
+    Context 'When the resource has the canonical DSC property _exist' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.Boolean]
+    $_exist = $true
+
+    MyMockResource () {}
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:setMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Set' -Value {
+                    $script:setMethodCallCount++
+                } -Force
+            }
+        }
+
+        It 'Should set _exist to $false and enforce the desired state' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance.DeleteInstance()
+
+                $mockResourceBaseInstance._exist | Should -BeFalse
+                $script:setMethodCallCount | Should -Be 1
+            }
+        }
+    }
+
+    Context 'When the resource has the property Ensure' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [Ensure]
+    $Ensure = [Ensure]::Present
+
+    MyMockResource () {}
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:setMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Set' -Value {
+                    $script:setMethodCallCount++
+                } -Force
+            }
+        }
+
+        It 'Should set Ensure to Absent and enforce the desired state' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance.DeleteInstance()
+
+                $mockResourceBaseInstance.Ensure | Should -Be ([Ensure]::Absent)
+                $script:setMethodCallCount | Should -Be 1
+            }
+        }
+    }
+
+    Context 'When the resource has both the property _exist and the property Ensure' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.Boolean]
+    $_exist = $true
+
+    [DscProperty()]
+    [Ensure]
+    $Ensure = [Ensure]::Present
+
+    MyMockResource () {}
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+            InModuleScope -ScriptBlock {
+                $script:setMethodCallCount = 0
+
+                $mockResourceBaseInstance | Add-Member -MemberType ScriptMethod -Name 'Set' -Value {
+                    $script:setMethodCallCount++
+                } -Force
+            }
+        }
+
+        It 'Should use the canonical DSC property _exist' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance.DeleteInstance()
+
+                $mockResourceBaseInstance._exist | Should -BeFalse
+                $mockResourceBaseInstance.Ensure | Should -Be ([Ensure]::Present)
+                $script:setMethodCallCount | Should -Be 1
+            }
+        }
+    }
+
+    Context 'When the resource has neither the property _exist nor the property Ensure' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    MyMockResource () {}
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+        }
+
+        It 'Should throw the correct error' {
+            InModuleScope -ScriptBlock {
+                { $mockResourceBaseInstance.DeleteInstance() } | Should -Throw -ExpectedMessage '*does not support the delete operation*'
+            }
+        }
+    }
+}
+
+Describe 'ResourceBase\ExportInstances()' -Tag 'ExportInstances' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+    }
+
+    Context 'When the method ExportInstances() is not overridden' {
+        BeforeAll {
+            $mockResourceBaseInstance = InModuleScope -ScriptBlock {
+                [ResourceBase]::new()
+            }
+        }
+
+        It 'Should throw the correct error' {
+            { $mockResourceBaseInstance.ExportInstances($null) } | Should -Throw -ExpectedMessage '*ExportInstances()*'
+        }
+    }
+
+    Context 'When the method ExportInstances() is overridden' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    MyMockResource () {}
+
+    hidden [ResourceBase[]] ExportInstances([ResourceBase] $filteringInstance)
+    {
+        $instance1 = [MyMockResource]::new()
+        $instance1.MyResourceKeyProperty1 = 'Instance1'
+
+        $instance2 = [MyMockResource]::new()
+        $instance2.MyResourceKeyProperty1 = 'Instance2'
+
+        if ($null -ne $filteringInstance)
+        {
+            return @($instance1)
+        }
+
+        return @($instance1, $instance2)
+    }
+
+    static [MyMockResource[]] Export()
+    {
+        return [MyMockResource]::new().ExportInstances($null)
+    }
+
+    static [MyMockResource[]] Export([MyMockResource] $filteringInstance)
+    {
+        return [MyMockResource]::new().ExportInstances($filteringInstance)
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+$script:mockResourceBaseType = [MyMockResource]
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+        }
+
+        It 'Should return every instance through the derived class static method Export()' {
+            InModuleScope -ScriptBlock {
+                $exportResult = $mockResourceBaseType::Export()
+
+                $exportResult | Should -HaveCount 2
+                $exportResult[0].GetType().Name | Should -Be 'MyMockResource'
+                $exportResult[0].MyResourceKeyProperty1 | Should -Be 'Instance1'
+                $exportResult[1].MyResourceKeyProperty1 | Should -Be 'Instance2'
+            }
+        }
+
+        It 'Should return the matching instances through the derived class static method Export() with a filtering instance' {
+            InModuleScope -ScriptBlock {
+                $exportResult = $mockResourceBaseType::Export($mockResourceBaseInstance)
+
+                $exportResult | Should -HaveCount 1
+                $exportResult[0].MyResourceKeyProperty1 | Should -Be 'Instance1'
+            }
+        }
+    }
+}
+
+Describe 'ResourceBase\GetInstanceJsonSchema()' -Tag 'GetInstanceJsonSchema' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+
+        $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockIntermediateResource : ResourceBase
+{
+    [DscProperty()]
+    [System.String]
+    $MyInheritedProperty
+}
+
+class MyMockResource : MyMockIntermediateResource
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [Ensure]
+    $Ensure = [Ensure]::Present
+
+    [DscProperty()]
+    [System.Boolean]
+    $_exist = $true
+
+    [DscProperty(NotConfigurable)]
+    [System.Collections.Hashtable[]]
+    $Reasons
+
+    MyMockResource () {}
+
+    static [System.String] InstanceJsonSchema()
+    {
+        return [MyMockResource]::new().GetInstanceJsonSchema()
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+$script:mockResourceBaseType = [MyMockResource]
+'@
+
+        InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+    }
+
+    It 'Should return a valid JSON string through the derived class static method InstanceJsonSchema()' {
+        InModuleScope -ScriptBlock {
+            $schemaJson = $mockResourceBaseType::InstanceJsonSchema()
+
+            { $schemaJson | ConvertFrom-Json -ErrorAction 'Stop' } | Should -Not -Throw
+        }
+    }
+
+    It 'Should return the correct schema' {
+        InModuleScope -ScriptBlock {
+            $schema = $mockResourceBaseType::InstanceJsonSchema() | ConvertFrom-Json
+
+            $schema.title | Should -Be 'MyMockResource'
+            $schema.type | Should -Be 'object'
+            $schema.required | Should -Contain 'MyResourceKeyProperty1'
+            $schema.additionalProperties | Should -BeFalse
+
+            $schema.properties.MyResourceKeyProperty1.type | Should -Be 'string'
+            $schema.properties.Ensure.type | Should -Be 'string'
+            $schema.properties.Ensure.enum | Should -Contain 'Present'
+            $schema.properties.Ensure.enum | Should -Contain 'Absent'
+            $schema.properties._exist.type | Should -Be 'boolean'
+            $schema.properties.Reasons.type | Should -Be 'array'
+            $schema.properties.Reasons.readOnly | Should -BeTrue
+        }
+    }
+
+    It 'Should include properties inherited from a base class' {
+        InModuleScope -ScriptBlock {
+            $schema = $mockResourceBaseType::InstanceJsonSchema() | ConvertFrom-Json
+
+            $schema.properties.MyInheritedProperty.type | Should -Be 'string'
+        }
+    }
+}
+
+Describe 'ResourceBase\Get() canonical DSC property _exist' -Tag 'Get' {
+    BeforeAll {
+        Mock -CommandName Get-ClassName -MockWith {
+            # Only return localized strings for this class name.
+            @('ResourceBase')
+        }
+    }
+
+    Context 'When the object exists in the current state' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.Boolean]
+    $_exist = $true
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    MyMockResource() : base ()
+    {
+        # These properties will not be enforced.
+        $this.ExcludeDscProperties = @(
+            'MyResourceKeyProperty1'
+        )
+    }
+
+    [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
+    {
+        return @{
+            MyResourceKeyProperty1 = 'MyValue1'
+            MyResourceProperty2 = 'MyValue2'
+        }
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+        }
+
+        It 'Should return _exist as $true' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance.MyResourceKeyProperty1 = 'MyValue1'
+                $mockResourceBaseInstance.MyResourceProperty2 = 'MyValue2'
+
+                $getResult = $mockResourceBaseInstance.Get()
+
+                $getResult._exist | Should -BeTrue
+            }
+        }
+    }
+
+    Context 'When the object does not exist in the current state' {
+        BeforeAll {
+            $inModuleScopeScriptBlock = @'
+using module DscResource.Base
+
+class MyMockResource : ResourceBase
+{
+    [DscProperty(Key)]
+    [System.String]
+    $MyResourceKeyProperty1
+
+    [DscProperty()]
+    [System.Boolean]
+    $_exist = $true
+
+    [DscProperty()]
+    [System.String]
+    $MyResourceProperty2
+
+    MyMockResource() : base ()
+    {
+        # These properties will not be enforced.
+        $this.ExcludeDscProperties = @(
+            'MyResourceKeyProperty1'
+        )
+    }
+
+    [System.Collections.Hashtable] GetCurrentState([System.Collections.Hashtable] $properties)
+    {
+        # The object does not exist in the current state.
+        return @{}
+    }
+}
+
+$script:mockResourceBaseInstance = [MyMockResource]::new()
+'@
+
+            InModuleScope -ScriptBlock ([Scriptblock]::Create($inModuleScopeScriptBlock))
+        }
+
+        It 'Should return _exist as $false' {
+            InModuleScope -ScriptBlock {
+                $mockResourceBaseInstance.MyResourceKeyProperty1 = 'MyValue1'
+
+                $getResult = $mockResourceBaseInstance.Get()
+
+                $getResult._exist | Should -BeFalse
+            }
+        }
+    }
+}

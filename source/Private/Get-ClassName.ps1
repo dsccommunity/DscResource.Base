@@ -26,7 +26,6 @@
 #>
 function Get-ClassName
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Because the rule does not understands that the command returns [System.String[]] when using , (comma) in the return statement')]
     [CmdletBinding()]
     [OutputType([System.String[]])]
     param
@@ -67,6 +66,6 @@ function Get-ClassName
 
     end
     {
-        return , [System.String[]] $class.ToArray()
+        $PSCmdlet.WriteObject([System.String[]] $class.ToArray(), $false)
     }
 }

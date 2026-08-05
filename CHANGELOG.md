@@ -5,6 +5,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ResourceBase` - new hidden helper methods that let a derived class
+  participate in the semantics of Microsoft DSC through one-liner static methods.
+  - `GetTestResult()` - returns the test result as the tuple
+    `[System.Tuple[System.Boolean, <DerivedClass>, System.String[]]]`.
+  - `GetSetResult([System.Boolean] $WhatIf)` - enforces the desired state and
+    returns the set result as the tuple
+    `[System.Tuple[<DerivedClass>, System.String[]]]`. In what-if mode the
+    predicted state is returned without modifying the system.
+  - `DeleteInstance()` - deletes the instance using the canonical DSC
+    property `_exist` (or `Ensure` as fallback for existing resources).
+  - `ExportInstances()` - override to support the export operation.
+  - `GetInstanceJsonSchema()` - returns the instance JSON schema built at
+    runtime using reflection, which also sees properties inherited from base
+    classes in other modules.
+- `ResourceBase` - the method `Get()` now also evaluates the canonical DSC
+  property `_exist`, equivalent to the existing evaluation of `Ensure`.
+- New private functions `New-DscResultTuple`,
+  `ConvertTo-DscResourceJsonSchema` and `ConvertTo-JsonSchemaTypeDefinition`
+  supporting the above.
+
 ## [2.0.0] - 2025-12-28
 
 ### Changed

@@ -124,6 +124,17 @@ class ResourceBase
         }
 
         <#
+            Evaluate if we should set the canonical DSC property _exist. A key
+            property added to the current state means the object was assumed to
+            not exist in the current state.
+        #>
+        if (($this | Test-DscProperty -Name '_exist') -and -not $getCurrentStateResult.ContainsKey('_exist'))
+        {
+            $dscResourceObject._exist = -not $keyPropertyAddedToCurrentState
+            $getCurrentStateResult._exist = -not $keyPropertyAddedToCurrentState
+        }
+
+        <#
             Returns all enforced properties not in desired state, or $null if
             all enforced properties are in desired state.
         #>
@@ -186,6 +197,198 @@ class ResourceBase
 
         Write-Verbose -Message $this.localizedData.InDesiredState
         return $true
+    }
+
+    <#
+        Returns the DSC test result for the resource as a strongly typed tuple of
+        type [System.Tuple[System.Boolean, <DerivedClass>, System.String[]]] where:
+
+        Item1 - $true if the resource is in the desired state, otherwise $false.
+        Item2 - An instance of the derived class representing the actual state.
+        Item3 - The names of the properties that are not in the desired state.
+
+        This method should normally not be overridden. It is meant to be called
+        by the derived class static method Test([<DerivedClass>] $instance) that
+        participates in the semantics of Microsoft DSC.
+    #>
+    hidden [System.Object] GetTestResult()
+    {
+        $actualState = $this.Get()
+
+        # $this.PropertiesNotInDesiredState was set by the Get() method.
+        $inDesiredState = -not $this.PropertiesNotInDesiredState
+
+        [System.String[]] $differingProperties = @()
+
+        if (-not $inDesiredState)
+        {
+            $differingProperties = [System.String[]] @($this.PropertiesNotInDesiredState.Property)
+        }
+
+        return (New-DscResultTuple -Type @([System.Boolean], $this.GetType(), [System.String[]]) -Value @($inDesiredState, $actualState, $differingProperties))
+    }
+
+    <#
+        Enforces the desired state and returns the DSC set result as a strongly
+        typed tuple of type [System.Tuple[<DerivedClass>, System.String[]]] where:
+
+        Item1 - An instance of the derived class representing the state after the
+                set operation, or the predicted state in what-if mode.
+        Item2 - The names of the properties that were (or would be) changed.
+
+        This method should normally not be overridden. It is meant to be called
+        by the derived class static methods Set([<DerivedClass>] $instance) and
+        Set([<DerivedClass>] $instance, [System.Boolean] $whatIf) that participate
+        in the semantics of Microsoft DSC.
+    #>
+    hidden [System.Object] GetSetResult()
+    {
+        return $this.GetSetResult($false)
+    }
+
+    hidden [System.Object] GetSetResult([System.Boolean] $WhatIf)
+    {
+        Write-Debug -Message ($this.localizedData.SetDesiredState -f $this.GetType().Name)
+
+        $currentState = $this.Get()
+
+        # $this.PropertiesNotInDesiredState was set by the Get() method.
+        if (-not $this.PropertiesNotInDesiredState)
+        {
+            Write-Debug -Message $this.localizedData.NoPropertiesToSet
+
+            return (New-DscResultTuple -Type @($this.GetType(), [System.String[]]) -Value @($currentState, [System.String[]] @()))
+        }
+
+        [System.String[]] $changedProperties = [System.String[]] @($this.PropertiesNotInDesiredState.Property)
+
+        if ($WhatIf)
+        {
+            Write-Verbose -Message ($this.localizedData.WhatIfDesiredState -f $this.GetType().Name)
+
+            $afterState = $this.GetPredictedState($currentState)
+        }
+        else
+        {
+            $propertiesToModify = $this.PropertiesNotInDesiredState | ConvertFrom-CompareResult
+
+            foreach ($property in $propertiesToModify.Keys)
+            {
+                Write-Verbose -Message ($this.localizedData.SetProperty -f $property, $propertiesToModify.$property)
+            }
+
+            <#
+                Call the Modify() method with the properties that should be enforced
+                and are not in desired state.
+            #>
+            $this.Modify($propertiesToModify)
+
+            # Get the authoritative state after the modification.
+            $afterState = $this.Get()
+        }
+
+        return (New-DscResultTuple -Type @($this.GetType(), [System.String[]]) -Value @($afterState, $changedProperties))
+    }
+
+    <#
+        Returns a new instance of the derived class representing the predicted
+        state after a set operation, without modifying the system. The predicted
+        state is the current state with the expected value applied to each
+        property that is not in the desired state.
+
+        This method should normally not be overridden.
+    #>
+    hidden [ResourceBase] GetPredictedState([ResourceBase] $currentState)
+    {
+        $predictedState = [System.Activator]::CreateInstance($this.GetType())
+
+        # Copy the DSC properties from the current state.
+        $currentStateProperties = $currentState | Get-DscProperty
+
+        foreach ($propertyName in @($currentStateProperties.Keys))
+        {
+            if ($null -ne $currentStateProperties.$propertyName)
+            {
+                $predictedState.$propertyName = $currentStateProperties.$propertyName
+            }
+        }
+
+        # Apply the desired value for each property that is not in the desired state.
+        foreach ($property in $this.PropertiesNotInDesiredState)
+        {
+            $predictedState.($property.Property) = $property.ExpectedValue
+        }
+
+        # The predicted state is by definition in the desired state.
+        if ($predictedState | Test-DscProperty -Name 'Reasons')
+        {
+            $predictedState.Reasons = @()
+        }
+
+        return $predictedState
+    }
+
+    <#
+        Deletes the resource instance from the system. The default implementation
+        requires the resource to have the canonical DSC property _exist, or the
+        property Ensure as a fallback, and enforces the desired state with _exist
+        set to $false (or Ensure set to Absent). Resources without either property
+        must override this method to support the Microsoft DSC delete operation.
+
+        This method is meant to be called by the derived class static method
+        Delete([<DerivedClass>] $instance) that participates in the semantics
+        of Microsoft DSC.
+    #>
+    hidden [void] DeleteInstance()
+    {
+        if ($this | Test-DscProperty -Name '_exist')
+        {
+            Write-Verbose -Message ($this.localizedData.DeleteInstance -f $this.GetType().Name)
+
+            $this._exist = $false
+        }
+        elseif ($this | Test-DscProperty -Name 'Ensure')
+        {
+            Write-Verbose -Message ($this.localizedData.DeleteInstance -f $this.GetType().Name)
+
+            $this.Ensure = [Ensure]::Absent
+        }
+        else
+        {
+            throw ($this.localizedData.DeleteInstanceNotSupported -f $this.GetType().Name)
+        }
+
+        $this.Set()
+    }
+
+    <#
+        This method can be overridden by a resource to support the Microsoft DSC export
+        operation. It must return every instance of the resource on the system, or,
+        when the parameter filteringInstance is not $null, only the matching
+        instances. The override must use the exact same method signature; the
+        returned array can hold instances of the derived class.
+
+        This method is meant to be called by the derived class static methods
+        Export() and Export([<DerivedClass>] $filteringInstance) that participate
+        in the semantics of Microsoft DSC.
+    #>
+    hidden [ResourceBase[]] ExportInstances([ResourceBase] $filteringInstance)
+    {
+        throw ($this.localizedData.ExportInstancesMethodNotImplemented -f $this.GetType().Name)
+    }
+
+    <#
+        Returns the JSON schema for an instance of the derived resource class,
+        built at runtime using reflection over the DSC properties. Reflection
+        sees properties inherited from base classes in other modules, which
+        build-time AST tooling cannot.
+
+        This method is meant to be called by the derived class static method
+        InstanceJsonSchema() that participates in the semantics of Microsoft DSC.
+    #>
+    hidden [System.String] GetInstanceJsonSchema()
+    {
+        return (ConvertTo-DscResourceJsonSchema -ResourceType $this.GetType())
     }
 
     <#
